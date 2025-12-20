@@ -33,7 +33,7 @@ export const EventForm = () => {
       dates: selectedDates.map(d => d.toISOString()),
       startTime,
       endTime,
-      duration: duration ? parseInt(duration) : undefined,
+      duration: duration && duration !== 'none' ? parseInt(duration) : undefined,
       availabilities: [],
       createdAt: new Date().toISOString(),
     };
@@ -172,7 +172,7 @@ export const EventForm = () => {
             <SelectValue placeholder="Select duration" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">No preference</SelectItem>
+            <SelectItem value="none">No preference</SelectItem>
             <SelectItem value="30">30 minutes</SelectItem>
             <SelectItem value="60">1 hour</SelectItem>
             <SelectItem value="90">1.5 hours</SelectItem>
