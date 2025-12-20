@@ -28,10 +28,10 @@ export async function createEvent(eventData: Omit<EventData, 'availabilities'>):
 
 export async function getEvent(id: string): Promise<{ data: EventData | null; error: Error | null }> {
   try {
-    // Fetch event
+    // Fetch event - explicitly select only needed fields, excluding host_email for privacy
     const { data: eventRow, error: eventError } = await supabase
       .from("events")
-      .select("*")
+      .select("id, name, host_name, dates, start_time, end_time, duration, created_at")
       .eq("id", id)
       .maybeSingle();
 
@@ -67,7 +67,7 @@ export async function getEvent(id: string): Promise<{ data: EventData | null; er
       id: eventRow.id,
       name: eventRow.name,
       hostName: eventRow.host_name,
-      hostEmail: eventRow.host_email || undefined,
+      // host_email is intentionally not fetched for privacy - it's only stored for host records
       dates: eventRow.dates,
       startTime: eventRow.start_time,
       endTime: eventRow.end_time,
