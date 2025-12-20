@@ -1,9 +1,11 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { format } from 'date-fns';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { generateTimeSlots, formatTimeSlot, formatDateHeader } from '@/lib/dateUtils';
 import type { EventData, TimeSlot, VisualizationMode, Availability } from '@/types/event';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
 
 interface AvailabilityGridProps {
   event: EventData;
@@ -12,7 +14,10 @@ interface AvailabilityGridProps {
   visualizationMode: VisualizationMode;
   selectedSlots: TimeSlot[];
   onSlotsChange: (slots: TimeSlot[]) => void;
+  showOthersAvailability?: boolean;
 }
+
+const DAYS_PER_PAGE = 7;
 
 export const AvailabilityGrid = ({
   event,
@@ -21,14 +26,20 @@ export const AvailabilityGrid = ({
   visualizationMode,
   selectedSlots,
   onSlotsChange,
+  showOthersAvailability = true,
 }: AvailabilityGridProps) => {
   const gridRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartSlot, setDragStartSlot] = useState<TimeSlot | null>(null);
   const [isAdding, setIsAdding] = useState(true);
+  const [currentPage, setCurrentPage] = useState(0);
 
   const timeSlots = generateTimeSlots(event.startTime, event.endTime, 30);
-  const dates = event.dates.map(d => new Date(d)).sort((a, b) => a.getTime() - b.getTime());
+  const allDates = event.dates.map(d => new Date(d)).sort((a, b) => a.getTime() - b.getTime());
+  
+  const totalPages = Math.ceil(allDates.length / DAYS_PER_PAGE);
+  const startIdx = currentPage * DAYS_PER_PAGE;
+  const dates = allDates.slice(startIdx, startIdx + DAYS_PER_PAGE);
 
   const getSlotKey = (date: string, time: string) => `${date}-${time}`;
 
@@ -37,12 +48,14 @@ export const AvailabilityGrid = ({
   };
 
   const getAvailabilityCount = (date: string, time: string): number => {
+    if (!showOthersAvailability && !isEditMode) return 0;
     return event.availabilities.filter(a =>
       a.slots.some(s => s.date === date && s.time === time)
     ).length;
   };
 
   const getAvailableParticipants = (date: string, time: string): string[] => {
+    if (!showOthersAvailability && !isEditMode) return [];
     return event.availabilities
       .filter(a => a.slots.some(s => s.date === date && s.time === time))
       .map(a => a.participantName);
@@ -51,20 +64,13 @@ export const AvailabilityGrid = ({
   const totalParticipants = event.availabilities.length || 1;
 
   const getHeatmapColor = (count: number): string => {
+    if (!showOthersAvailability && !isEditMode) return 'bg-available-0';
     if (count === 0) return 'bg-available-0';
     const percentage = (count / totalParticipants) * 100;
     if (percentage <= 25) return 'bg-available-25';
     if (percentage <= 50) return 'bg-available-50';
     if (percentage <= 75) return 'bg-available-75';
     return 'bg-available-100';
-  };
-
-  const getTrafficColor = (count: number): string => {
-    if (count === 0) return 'bg-available-0';
-    const percentage = (count / totalParticipants) * 100;
-    if (percentage < 30) return 'bg-traffic-red';
-    if (percentage < 100) return 'bg-traffic-yellow';
-    return 'bg-traffic-green';
   };
 
   const handleSlotInteraction = useCallback((date: string, time: string) => {
@@ -141,8 +147,43 @@ export const AvailabilityGrid = ({
     setIsDragging(false);
   };
 
+  const handlePrevPage = () => {
+    setCurrentPage(p => Math.max(0, p - 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage(p => Math.min(totalPages - 1, p + 1));
+  };
+
   return (
     <div className="relative overflow-hidden rounded-lg border border-border bg-card">
+      {/* Pagination Header */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-muted/30">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handlePrevPage}
+            disabled={currentPage === 0}
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Previous
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            {currentPage + 1} / {totalPages}
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleNextPage}
+            disabled={currentPage === totalPages - 1}
+          >
+            Next
+            <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
+        </div>
+      )}
+
       <div
         ref={gridRef}
         className="flex overflow-x-auto"
@@ -163,13 +204,13 @@ export const AvailabilityGrid = ({
         </div>
 
         {/* Date columns */}
-        <div className="flex">
+        <div className="flex flex-1">
           {dates.map((date) => {
             const dateStr = date.toISOString();
             const header = formatDateHeader(dateStr);
 
             return (
-              <div key={dateStr} className="flex-shrink-0 min-w-[48px] sm:min-w-[56px]">
+              <div key={dateStr} className="flex-1 min-w-[48px] sm:min-w-[56px]">
                 {/* Date header */}
                 <div className="h-16 flex flex-col items-center justify-center border-b border-border px-1">
                   <span className="text-[10px] text-muted-foreground uppercase">
@@ -188,9 +229,7 @@ export const AvailabilityGrid = ({
                   const participants = getAvailableParticipants(dateStr, time);
                   const colorClass = isEditMode && isSelected
                     ? 'bg-primary'
-                    : visualizationMode === 'heatmap'
-                      ? getHeatmapColor(count)
-                      : getTrafficColor(count);
+                    : getHeatmapColor(count);
 
                   const slotContent = (
                     <div
@@ -207,7 +246,7 @@ export const AvailabilityGrid = ({
                     />
                   );
 
-                  if (!isEditMode && participants.length > 0) {
+                  if (!isEditMode && participants.length > 0 && showOthersAvailability) {
                     return (
                       <Tooltip key={getSlotKey(dateStr, time)}>
                         <TooltipTrigger asChild>

@@ -19,7 +19,7 @@ export const EventForm = () => {
   const [eventName, setEventName] = useState('');
   const [hostName, setHostName] = useState('');
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
-  const [startTime, setStartTime] = useState('09:00');
+  const [startTime, setStartTime] = useState('08:00');
   const [endTime, setEndTime] = useState('17:00');
 
   const handleCreateEvent = () => {
