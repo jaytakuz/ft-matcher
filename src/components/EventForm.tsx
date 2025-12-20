@@ -9,7 +9,7 @@ import { DraggableCalendar } from '@/components/DraggableCalendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { generateEventId, generateTimeSlots } from '@/lib/dateUtils';
+import { generateEventId, generateTimeSlots, formatTimeSlot } from '@/lib/dateUtils';
 import type { EventData } from '@/types/event';
 
 const timeOptions = generateTimeSlots('06:00', '24:00', 60);
@@ -130,12 +130,12 @@ export const EventForm = () => {
           <Select value={startTime} onValueChange={setStartTime}>
             <SelectTrigger>
               <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-              <SelectValue />
+              <SelectValue placeholder="Select start time" />
             </SelectTrigger>
             <SelectContent className="max-h-60">
               {timeOptions.map((time) => (
                 <SelectItem key={time} value={time}>
-                  {format(new Date(`2000-01-01T${time}`), 'h:mm a')}
+                  {formatTimeSlot(time)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -146,12 +146,12 @@ export const EventForm = () => {
           <Select value={endTime} onValueChange={setEndTime}>
             <SelectTrigger>
               <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-              <SelectValue />
+              <SelectValue placeholder="Select end time" />
             </SelectTrigger>
             <SelectContent className="max-h-60">
               {timeOptions.map((time) => (
                 <SelectItem key={time} value={time} disabled={time <= startTime}>
-                  {format(new Date(`2000-01-01T${time}`), 'h:mm a')}
+                  {formatTimeSlot(time)}
                 </SelectItem>
               ))}
             </SelectContent>

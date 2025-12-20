@@ -1,17 +1,29 @@
 import { format, parse, addMinutes, isBefore, isAfter, startOfDay, addDays, getYear, setYear } from 'date-fns';
 
-export const generateTimeSlots = (startTime: string, endTime: string, intervalMinutes: number = 30): string[] => {
+export const generateTimeSlots = (
+  startTime: string,
+  endTime: string,
+  intervalMinutes: number = 30
+): string[] => {
   const slots: string[] = [];
   const baseDate = new Date(2000, 0, 1);
-  
-  let current = parse(startTime, 'HH:mm', baseDate);
-  const end = parse(endTime, 'HH:mm', baseDate);
-  
+
+  const start = parse(startTime, "HH:mm", baseDate);
+
+  // Radix Select needs non-empty values; also `date-fns/parse` doesn't accept 24:00.
+  // Treat "24:00" as end-of-day (exclusive), i.e. next day at 00:00.
+  const end =
+    endTime === "24:00"
+      ? addDays(startOfDay(baseDate), 1)
+      : parse(endTime, "HH:mm", baseDate);
+
+  let current = start;
+
   while (isBefore(current, end)) {
-    slots.push(format(current, 'HH:mm'));
+    slots.push(format(current, "HH:mm"));
     current = addMinutes(current, intervalMinutes);
   }
-  
+
   return slots;
 };
 
