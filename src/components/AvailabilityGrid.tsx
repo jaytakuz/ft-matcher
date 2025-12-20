@@ -40,16 +40,16 @@ export const AvailabilityGrid = ({
     return selectedSlots.some(s => s.date === date && s.time === time);
   };
   const getAvailabilityCount = (date: string, time: string): number => {
-    if (!showOthersAvailability && !isEditMode) return 0;
+    if (!showOthersAvailability) return 0;
     return event.availabilities.filter(a => a.slots.some(s => s.date === date && s.time === time)).length;
   };
   const getAvailableParticipants = (date: string, time: string): string[] => {
-    if (!showOthersAvailability && !isEditMode) return [];
+    if (!showOthersAvailability) return [];
     return event.availabilities.filter(a => a.slots.some(s => s.date === date && s.time === time)).map(a => a.participantName);
   };
   const totalParticipants = event.availabilities.length || 1;
   const getHeatmapColor = (count: number): string => {
-    if (!showOthersAvailability && !isEditMode) return 'bg-available-0';
+    if (!showOthersAvailability) return 'bg-available-0';
     if (count === 0) return 'bg-available-0';
     const percentage = count / totalParticipants * 100;
     if (percentage <= 25) return 'bg-available-25';
