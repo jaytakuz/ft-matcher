@@ -170,9 +170,9 @@ export function DraggableCalendar({
                     "h-9 w-9 flex items-center justify-center text-sm rounded-md cursor-pointer transition-colors",
                     !isCurrentMonth && "opacity-50 text-muted-foreground",
                     isDisabled && "opacity-50 cursor-not-allowed",
-                    isToday && !isSelected && "bg-accent text-accent-foreground",
                     isSelected && "bg-primary text-primary-foreground",
                     isInRange && !isSelected && "bg-primary/50 text-primary-foreground",
+                    isToday && !isSelected && !isInRange && "ring-2 ring-primary ring-offset-2 ring-offset-background",
                     !isSelected && !isInRange && !isToday && isCurrentMonth && !isDisabled && 
                       "hover:bg-accent hover:text-accent-foreground"
                   )}

@@ -34,7 +34,7 @@ const EventPage = () => {
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [selectedSlots, setSelectedSlots] = useState<TimeSlot[]>([]);
   const [copied, setCopied] = useState(false);
-  const [showOthersAvailability, setShowOthersAvailability] = useState(false);
+  const [showOthersAvailability, setShowOthersAvailability] = useState(true);
 
   useEffect(() => {
     if (id) {
@@ -77,6 +77,8 @@ const EventPage = () => {
       setSelectedSlots([]);
     }
     
+    // Hide others' availability by default when entering edit mode
+    setShowOthersAvailability(false);
     setIsEditMode(true);
   };
 
@@ -102,6 +104,8 @@ const EventPage = () => {
     });
 
     setIsEditMode(false);
+    // Show others' availability again after saving
+    setShowOthersAvailability(true);
     toast({
       title: "Availability saved!",
       description: `Your availability has been updated.`,
@@ -112,6 +116,8 @@ const EventPage = () => {
     setIsEditMode(false);
     setSelectedSlots([]);
     setCurrentUser(null);
+    // Show others' availability again after canceling
+    setShowOthersAvailability(true);
   };
 
   if (loading) {
@@ -185,29 +191,23 @@ const EventPage = () => {
         <div className="grid lg:grid-cols-[1fr_320px] gap-6">
           {/* Main Grid Section */}
           <div className="space-y-4">
-            {/* Controls - only show toggle in edit mode */}
+            {/* Controls */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-card rounded-lg border border-border">
-              {isEditMode ? (
-                <div className="flex items-center gap-3">
-                  {showOthersAvailability ? (
-                    <Eye className="h-4 w-4 text-muted-foreground" />
-                  ) : (
-                    <EyeOff className="h-4 w-4 text-muted-foreground" />
-                  )}
-                  <Label htmlFor="show-others" className="text-sm cursor-pointer">
-                    Show others' availability
-                  </Label>
-                  <Switch
-                    id="show-others"
-                    checked={showOthersAvailability}
-                    onCheckedChange={setShowOthersAvailability}
-                  />
-                </div>
-              ) : (
-                <div className="text-sm text-muted-foreground">
-                  Click "Add Your Availability" to pick your time slots
-                </div>
-              )}
+              <div className="flex items-center gap-3">
+                {showOthersAvailability ? (
+                  <Eye className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <EyeOff className="h-4 w-4 text-muted-foreground" />
+                )}
+                <Label htmlFor="show-others" className="text-sm cursor-pointer">
+                  {isEditMode ? "Show others' availability" : "Show all availability"}
+                </Label>
+                <Switch
+                  id="show-others"
+                  checked={showOthersAvailability}
+                  onCheckedChange={setShowOthersAvailability}
+                />
+              </div>
               <Legend mode="heatmap" />
             </div>
 
