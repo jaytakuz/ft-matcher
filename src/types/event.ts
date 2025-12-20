@@ -17,6 +17,7 @@ export interface EventData {
   dates: string[]; // ISO date strings
   startTime: string; // HH:mm
   endTime: string; // HH:mm
+  duration?: number; // in minutes
   availabilities: Availability[];
   createdAt: string;
 }
