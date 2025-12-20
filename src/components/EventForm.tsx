@@ -5,7 +5,7 @@ import { CalendarDays, Clock, User, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Calendar } from '@/components/ui/calendar';
+import { DraggableCalendar } from '@/components/DraggableCalendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
@@ -98,13 +98,10 @@ export const EventForm = () => {
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
-            <Calendar
-              mode="multiple"
+            <DraggableCalendar
               selected={selectedDates}
-              onSelect={(dates) => setSelectedDates(dates || [])}
+              onSelect={setSelectedDates}
               disabled={(date) => date < addDays(new Date(), -1)}
-              initialFocus
-              className="pointer-events-auto"
             />
           </PopoverContent>
         </Popover>
