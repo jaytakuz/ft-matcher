@@ -29,4 +29,4 @@ export interface RecommendedSlot {
   score: number;
 }
 
-export type VisualizationMode = 'heatmap' | 'traffic';
+export type VisualizationMode = 'heatmap';

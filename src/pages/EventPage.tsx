@@ -6,18 +6,20 @@ import {
   Share2, 
   Plus, 
   Check, 
-  Copy,
   Users,
   ArrowLeft,
-  Pencil
+  Pencil,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { AvailabilityGrid } from '@/components/AvailabilityGrid';
 import { RecommendedTimes } from '@/components/RecommendedTimes';
 import { ParticipantForm } from '@/components/ParticipantForm';
-import { VisualizationToggle } from '@/components/VisualizationToggle';
 import { Legend } from '@/components/Legend';
 import type { EventData, TimeSlot, VisualizationMode, Availability } from '@/types/event';
 
@@ -27,11 +29,11 @@ const EventPage = () => {
   const [event, setEvent] = useState<EventData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [visualizationMode, setVisualizationMode] = useState<VisualizationMode>('heatmap');
   const [showParticipantForm, setShowParticipantForm] = useState(false);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [selectedSlots, setSelectedSlots] = useState<TimeSlot[]>([]);
   const [copied, setCopied] = useState(false);
+  const [showOthersAvailability, setShowOthersAvailability] = useState(true);
 
   useEffect(() => {
     if (id) {
@@ -174,13 +176,32 @@ const EventPage = () => {
           </div>
         </div>
 
+        {/* Top Recommendation Section */}
+        <div className="mb-6">
+          <RecommendedTimes event={event} />
+        </div>
+
         <div className="grid lg:grid-cols-[1fr_320px] gap-6">
           {/* Main Grid Section */}
           <div className="space-y-4">
             {/* Controls */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-card rounded-lg border border-border">
-              <VisualizationToggle mode={visualizationMode} onChange={setVisualizationMode} />
-              <Legend mode={visualizationMode} />
+              <div className="flex items-center gap-3">
+                {showOthersAvailability ? (
+                  <Eye className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <EyeOff className="h-4 w-4 text-muted-foreground" />
+                )}
+                <Label htmlFor="show-others" className="text-sm cursor-pointer">
+                  Show others' availability
+                </Label>
+                <Switch
+                  id="show-others"
+                  checked={showOthersAvailability}
+                  onCheckedChange={setShowOthersAvailability}
+                />
+              </div>
+              <Legend mode="heatmap" />
             </div>
 
             {/* Grid */}
@@ -188,9 +209,10 @@ const EventPage = () => {
               event={event}
               currentUser={currentUser ?? undefined}
               isEditMode={isEditMode}
-              visualizationMode={visualizationMode}
+              visualizationMode="heatmap"
               selectedSlots={selectedSlots}
               onSlotsChange={setSelectedSlots}
+              showOthersAvailability={showOthersAvailability}
             />
 
             {/* Action Button */}
@@ -228,10 +250,8 @@ const EventPage = () => {
             )}
           </div>
 
-          {/* Sidebar - Recommendations */}
+          {/* Sidebar - Participants */}
           <aside className="space-y-4">
-            <RecommendedTimes event={event} />
-            
             {/* Participants List */}
             {event.availabilities.length > 0 && (
               <div className="bg-card border border-border rounded-lg p-4">
