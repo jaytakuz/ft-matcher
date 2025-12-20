@@ -21,6 +21,7 @@ export const EventForm = () => {
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [startTime, setStartTime] = useState('08:00');
   const [endTime, setEndTime] = useState('17:00');
+  const [duration, setDuration] = useState('');
 
   const handleCreateEvent = () => {
     if (!eventName || !hostName || selectedDates.length === 0) return;
@@ -32,6 +33,7 @@ export const EventForm = () => {
       dates: selectedDates.map(d => d.toISOString()),
       startTime,
       endTime,
+      duration: duration ? parseInt(duration) : undefined,
       availabilities: [],
       createdAt: new Date().toISOString(),
     };
@@ -133,7 +135,7 @@ export const EventForm = () => {
               <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-h-60">
               {timeOptions.map((time) => (
                 <SelectItem key={time} value={time}>
                   {format(new Date(`2000-01-01T${time}`), 'h:mm a')}
@@ -149,7 +151,7 @@ export const EventForm = () => {
               <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-h-60">
               {timeOptions.map((time) => (
                 <SelectItem key={time} value={time} disabled={time <= startTime}>
                   {format(new Date(`2000-01-01T${time}`), 'h:mm a')}
@@ -158,6 +160,27 @@ export const EventForm = () => {
             </SelectContent>
           </Select>
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="duration" className="text-sm font-medium">
+          Event Duration <span className="text-muted-foreground">(optional)</span>
+        </Label>
+        <Select value={duration} onValueChange={setDuration}>
+          <SelectTrigger>
+            <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
+            <SelectValue placeholder="Select duration" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">No preference</SelectItem>
+            <SelectItem value="30">30 minutes</SelectItem>
+            <SelectItem value="60">1 hour</SelectItem>
+            <SelectItem value="90">1.5 hours</SelectItem>
+            <SelectItem value="120">2 hours</SelectItem>
+            <SelectItem value="180">3 hours</SelectItem>
+            <SelectItem value="240">4 hours</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <Button

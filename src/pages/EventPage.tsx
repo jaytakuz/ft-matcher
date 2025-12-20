@@ -19,9 +19,10 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { AvailabilityGrid } from '@/components/AvailabilityGrid';
 import { RecommendedTimes } from '@/components/RecommendedTimes';
+import { TopRecommendation } from '@/components/TopRecommendation';
 import { ParticipantForm } from '@/components/ParticipantForm';
 import { Legend } from '@/components/Legend';
-import type { EventData, TimeSlot, VisualizationMode, Availability } from '@/types/event';
+import type { EventData, TimeSlot, Availability } from '@/types/event';
 
 const EventPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -33,7 +34,7 @@ const EventPage = () => {
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [selectedSlots, setSelectedSlots] = useState<TimeSlot[]>([]);
   const [copied, setCopied] = useState(false);
-  const [showOthersAvailability, setShowOthersAvailability] = useState(true);
+  const [showOthersAvailability, setShowOthersAvailability] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -176,31 +177,37 @@ const EventPage = () => {
           </div>
         </div>
 
-        {/* Top Recommendation Section */}
+        {/* Top Recommendation - only shows when 2+ participants have overlapping times */}
         <div className="mb-6">
-          <RecommendedTimes event={event} />
+          <TopRecommendation event={event} />
         </div>
 
         <div className="grid lg:grid-cols-[1fr_320px] gap-6">
           {/* Main Grid Section */}
           <div className="space-y-4">
-            {/* Controls */}
+            {/* Controls - only show toggle in edit mode */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-card rounded-lg border border-border">
-              <div className="flex items-center gap-3">
-                {showOthersAvailability ? (
-                  <Eye className="h-4 w-4 text-muted-foreground" />
-                ) : (
-                  <EyeOff className="h-4 w-4 text-muted-foreground" />
-                )}
-                <Label htmlFor="show-others" className="text-sm cursor-pointer">
-                  Show others' availability
-                </Label>
-                <Switch
-                  id="show-others"
-                  checked={showOthersAvailability}
-                  onCheckedChange={setShowOthersAvailability}
-                />
-              </div>
+              {isEditMode ? (
+                <div className="flex items-center gap-3">
+                  {showOthersAvailability ? (
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                  )}
+                  <Label htmlFor="show-others" className="text-sm cursor-pointer">
+                    Show others' availability
+                  </Label>
+                  <Switch
+                    id="show-others"
+                    checked={showOthersAvailability}
+                    onCheckedChange={setShowOthersAvailability}
+                  />
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground">
+                  Click "Add Your Availability" to pick your time slots
+                </div>
+              )}
               <Legend mode="heatmap" />
             </div>
 
@@ -250,8 +257,11 @@ const EventPage = () => {
             )}
           </div>
 
-          {/* Sidebar - Participants */}
+          {/* Sidebar - Participants & Best Times */}
           <aside className="space-y-4">
+            {/* Best Times List */}
+            <RecommendedTimes event={event} />
+
             {/* Participants List */}
             {event.availabilities.length > 0 && (
               <div className="bg-card border border-border rounded-lg p-4">
