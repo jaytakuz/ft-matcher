@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { 
@@ -22,6 +22,7 @@ import { RecommendedTimes } from '@/components/RecommendedTimes';
 import { TopRecommendation } from '@/components/TopRecommendation';
 import { ParticipantForm } from '@/components/ParticipantForm';
 import { Legend } from '@/components/Legend';
+import { getEvent, saveAvailability } from '@/lib/eventService';
 import type { EventData, TimeSlot, Availability } from '@/types/event';
 
 const EventPage = () => {
@@ -35,21 +36,22 @@ const EventPage = () => {
   const [selectedSlots, setSelectedSlots] = useState<TimeSlot[]>([]);
   const [copied, setCopied] = useState(false);
   const [showOthersAvailability, setShowOthersAvailability] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    if (id) {
-      const stored = localStorage.getItem(`event-${id}`);
-      if (stored) {
-        setEvent(JSON.parse(stored));
-      }
-      setLoading(false);
+  const loadEvent = useCallback(async () => {
+    if (!id) return;
+    setLoading(true);
+    const { data, error } = await getEvent(id);
+    if (error) {
+      console.error("Error loading event:", error);
     }
+    setEvent(data);
+    setLoading(false);
   }, [id]);
 
-  const saveEvent = (updatedEvent: EventData) => {
-    localStorage.setItem(`event-${updatedEvent.id}`, JSON.stringify(updatedEvent));
-    setEvent(updatedEvent);
-  };
+  useEffect(() => {
+    loadEvent();
+  }, [loadEvent]);
 
   const handleCopyLink = async () => {
     const url = window.location.href;
@@ -82,30 +84,28 @@ const EventPage = () => {
     setIsEditMode(true);
   };
 
-  const handleSaveAvailability = () => {
+  const handleSaveAvailability = async () => {
     if (!event || !currentUser) return;
 
-    const updatedAvailabilities = event.availabilities.filter(
-      a => a.participantName.toLowerCase() !== currentUser.toLowerCase()
-    );
+    setIsSaving(true);
+    const { error } = await saveAvailability(event.id, currentUser, selectedSlots);
 
-    if (selectedSlots.length > 0) {
-      const newAvailability: Availability = {
-        participantId: crypto.randomUUID(),
-        participantName: currentUser,
-        slots: selectedSlots,
-      };
-      updatedAvailabilities.push(newAvailability);
+    if (error) {
+      toast({
+        title: "Error saving availability",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+      setIsSaving(false);
+      return;
     }
 
-    saveEvent({
-      ...event,
-      availabilities: updatedAvailabilities,
-    });
+    // Reload event to get updated data
+    await loadEvent();
 
     setIsEditMode(false);
-    // Show others' availability again after saving
     setShowOthersAvailability(true);
+    setIsSaving(false);
     toast({
       title: "Availability saved!",
       description: `Your availability has been updated.`,
@@ -234,9 +234,15 @@ const EventPage = () => {
               </Button>
             ) : (
               <div className="flex flex-col sm:flex-row gap-3">
-                <Button onClick={handleSaveAvailability} size="lg" className="flex-1 sm:flex-none">
-                  <Check className="mr-2 h-4 w-4" />
-                  Save Availability
+                <Button onClick={handleSaveAvailability} size="lg" className="flex-1 sm:flex-none" disabled={isSaving}>
+                  {isSaving ? (
+                    <span className="animate-pulse">Saving...</span>
+                  ) : (
+                    <>
+                      <Check className="mr-2 h-4 w-4" />
+                      Save Availability
+                    </>
+                  )}
                 </Button>
                 <Button onClick={handleCancelEdit} variant="outline" size="lg">
                   Cancel

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format, addDays } from 'date-fns';
-import { CalendarDays, Clock, User, Sparkles } from 'lucide-react';
+import { CalendarDays, Clock, User, Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,23 +10,29 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { generateEventId, generateTimeSlots, formatTimeSlot } from '@/lib/dateUtils';
+import { createEvent } from '@/lib/eventService';
+import { useToast } from '@/hooks/use-toast';
 import type { EventData } from '@/types/event';
 
 const timeOptions = generateTimeSlots('06:00', '24:00', 60);
 
 export const EventForm = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [eventName, setEventName] = useState('');
   const [hostName, setHostName] = useState('');
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [startTime, setStartTime] = useState('08:00');
   const [endTime, setEndTime] = useState('17:00');
   const [duration, setDuration] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleCreateEvent = () => {
+  const handleCreateEvent = async () => {
     if (!eventName || !hostName || selectedDates.length === 0) return;
 
-    const eventData: EventData = {
+    setIsLoading(true);
+
+    const eventData = {
       id: generateEventId(),
       name: eventName,
       hostName,
@@ -34,12 +40,20 @@ export const EventForm = () => {
       startTime,
       endTime,
       duration: duration && duration !== 'none' ? parseInt(duration) : undefined,
-      availabilities: [],
       createdAt: new Date().toISOString(),
     };
 
-    // Store in localStorage for demo (would use database in production)
-    localStorage.setItem(`event-${eventData.id}`, JSON.stringify(eventData));
+    const { error } = await createEvent(eventData);
+
+    if (error) {
+      toast({
+        title: "Error creating event",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
     
     navigate(`/event/${eventData.id}`);
   };
@@ -182,11 +196,18 @@ export const EventForm = () => {
 
       <Button
         onClick={handleCreateEvent}
-        disabled={!isFormValid}
+        disabled={!isFormValid || isLoading}
         className="w-full h-12 text-base font-medium"
         size="lg"
       >
-        Create Event
+        {isLoading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Creating...
+          </>
+        ) : (
+          "Create Event"
+        )}
       </Button>
     </div>
   );

@@ -14,7 +14,103 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      availabilities: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          participant_id: string
+          participant_name: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          participant_id: string
+          participant_name: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          participant_id?: string
+          participant_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "availabilities_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          created_at: string
+          dates: string[]
+          duration: number | null
+          end_time: string
+          host_email: string | null
+          host_name: string
+          id: string
+          name: string
+          start_time: string
+        }
+        Insert: {
+          created_at?: string
+          dates: string[]
+          duration?: number | null
+          end_time: string
+          host_email?: string | null
+          host_name: string
+          id: string
+          name: string
+          start_time: string
+        }
+        Update: {
+          created_at?: string
+          dates?: string[]
+          duration?: number | null
+          end_time?: string
+          host_email?: string | null
+          host_name?: string
+          id?: string
+          name?: string
+          start_time?: string
+        }
+        Relationships: []
+      }
+      slots: {
+        Row: {
+          availability_id: string
+          date: string
+          id: string
+          time: string
+        }
+        Insert: {
+          availability_id: string
+          date: string
+          id?: string
+          time: string
+        }
+        Update: {
+          availability_id?: string
+          date?: string
+          id?: string
+          time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "slots_availability_id_fkey"
+            columns: ["availability_id"]
+            isOneToOne: false
+            referencedRelation: "availabilities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
