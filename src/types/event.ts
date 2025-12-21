@@ -17,9 +17,15 @@ export interface EventData {
   dates: string[]; // ISO date strings
   startTime: string; // HH:mm
   endTime: string; // HH:mm
-  duration?: number; // in minutes
+  duration?: number; // event duration in minutes
+  slotLength?: number; // slot length in minutes (default 30)
   availabilities: Availability[];
   createdAt: string;
+}
+
+export interface ParticipantInfo {
+  name: string;
+  email?: string;
 }
 
 export interface RecommendedSlot {

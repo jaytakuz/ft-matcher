@@ -1,5 +1,6 @@
 import { CalendarCheck, Users, Zap, ArrowRight } from 'lucide-react';
 import { EventForm } from '@/components/EventForm';
+import { EventSearch } from '@/components/EventSearch';
 
 const Index = () => {
   return (
@@ -44,6 +45,12 @@ const Index = () => {
               title="Smart Suggestions"
               description="Get ranked recommendations for the best meeting times"
             />
+          </div>
+
+          {/* Join existing event */}
+          <div className="bg-secondary/30 border border-border/50 rounded-xl p-6 mb-6">
+            <h2 className="text-lg font-medium mb-3">Join an existing event</h2>
+            <EventSearch />
           </div>
 
           {/* Form Card */}

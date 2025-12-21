@@ -22,6 +22,8 @@ import { RecommendedTimes } from '@/components/RecommendedTimes';
 import { TopRecommendation } from '@/components/TopRecommendation';
 import { ParticipantForm } from '@/components/ParticipantForm';
 import { Legend } from '@/components/Legend';
+import { EventCodeDisplay } from '@/components/EventCodeDisplay';
+import { AddToCalendarButton } from '@/components/AddToCalendarButton';
 import { getEvent, saveAvailability } from '@/lib/eventService';
 import type { EventData, TimeSlot, Availability } from '@/types/event';
 
@@ -33,6 +35,7 @@ const EventPage = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [showParticipantForm, setShowParticipantForm] = useState(false);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
+  const [currentUserEmail, setCurrentUserEmail] = useState<string | undefined>(undefined);
   const [selectedSlots, setSelectedSlots] = useState<TimeSlot[]>([]);
   const [copied, setCopied] = useState(false);
   const [showOthersAvailability, setShowOthersAvailability] = useState(true);
@@ -64,8 +67,9 @@ const EventPage = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleJoin = (name: string) => {
+  const handleJoin = (name: string, email?: string) => {
     setCurrentUser(name);
+    setCurrentUserEmail(email);
     setShowParticipantForm(false);
     
     // Check if user already has availability
@@ -116,6 +120,7 @@ const EventPage = () => {
     setIsEditMode(false);
     setSelectedSlots([]);
     setCurrentUser(null);
+    setCurrentUserEmail(undefined);
     // Show others' availability again after canceling
     setShowOthersAvailability(true);
   };
@@ -173,6 +178,11 @@ const EventPage = () => {
               <p className="text-muted-foreground">
                 Hosted by {event.hostName} • {dateRange}
               </p>
+              {event.duration && (
+                <Badge variant="secondary" className="mt-2">
+                  {event.duration < 60 ? `${event.duration} min` : `${event.duration / 60} hour${event.duration > 60 ? 's' : ''}`} event
+                </Badge>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="secondary" className="flex items-center gap-1">
@@ -265,6 +275,12 @@ const EventPage = () => {
 
           {/* Sidebar - Participants & Best Times */}
           <aside className="space-y-4">
+            {/* Event Code Display */}
+            <EventCodeDisplay eventId={event.id} />
+
+            {/* Add to Calendar Button */}
+            <AddToCalendarButton event={event} />
+
             {/* Best Times List */}
             <RecommendedTimes event={event} />
 
