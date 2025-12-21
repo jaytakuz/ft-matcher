@@ -12,6 +12,7 @@ export async function createEvent(eventData: Omit<EventData, 'availabilities'>):
       start_time: eventData.startTime,
       end_time: eventData.endTime,
       duration: eventData.duration || null,
+      slot_length: eventData.slotLength || 30,
     });
 
     if (error) throw error;
@@ -26,12 +27,16 @@ export async function createEvent(eventData: Omit<EventData, 'availabilities'>):
   }
 }
 
+export async function getEventByCode(code: string): Promise<{ data: EventData | null; error: Error | null }> {
+  return getEvent(code);
+}
+
 export async function getEvent(id: string): Promise<{ data: EventData | null; error: Error | null }> {
   try {
     // Fetch event - explicitly select only needed fields, excluding host_email for privacy
     const { data: eventRow, error: eventError } = await supabase
       .from("events")
-      .select("id, name, host_name, dates, start_time, end_time, duration, created_at")
+      .select("id, name, host_name, dates, start_time, end_time, duration, slot_length, created_at")
       .eq("id", id)
       .maybeSingle();
 
@@ -72,6 +77,7 @@ export async function getEvent(id: string): Promise<{ data: EventData | null; er
       startTime: eventRow.start_time,
       endTime: eventRow.end_time,
       duration: eventRow.duration || undefined,
+      slotLength: eventRow.slot_length || 30,
       availabilities,
       createdAt: eventRow.created_at,
     };

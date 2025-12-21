@@ -56,6 +56,7 @@ export type Database = {
           host_name: string
           id: string
           name: string
+          slot_length: number | null
           start_time: string
         }
         Insert: {
@@ -67,6 +68,7 @@ export type Database = {
           host_name: string
           id: string
           name: string
+          slot_length?: number | null
           start_time: string
         }
         Update: {
@@ -78,6 +80,7 @@ export type Database = {
           host_name?: string
           id?: string
           name?: string
+          slot_length?: number | null
           start_time?: string
         }
         Relationships: []
