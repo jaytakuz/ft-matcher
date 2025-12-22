@@ -44,23 +44,60 @@ export function DraggableCalendar({
            (isSameDay(date, end) || isBefore(date, end));
   }, [isDragging, dragStart, dragEnd]);
 
+  const dragStartRef = useRef<{ x: number; y: number } | null>(null);
+  const isDragRef = useRef(false);
+
   const handleMouseDown = (date: Date, e: React.MouseEvent) => {
     e.preventDefault();
     if (disabled?.(date)) return;
+    
+    // Store initial position to detect actual drag vs click
+    dragStartRef.current = { x: e.clientX, y: e.clientY };
+    isDragRef.current = false;
     
     setIsDragging(true);
     setDragStart(date);
     setDragEnd(date);
   };
 
-  const handleMouseEnter = (date: Date) => {
+  const handleMouseEnter = (date: Date, e: React.MouseEvent) => {
     if (!isDragging || disabled?.(date)) return;
+    
+    // If mouse moved significantly, mark as actual drag
+    if (dragStartRef.current) {
+      const dx = Math.abs(e.clientX - dragStartRef.current.x);
+      const dy = Math.abs(e.clientY - dragStartRef.current.y);
+      if (dx > 5 || dy > 5) {
+        isDragRef.current = true;
+      }
+    }
+    
     setDragEnd(date);
   };
 
-  const handleMouseUp = () => {
-    if (!isDragging || !dragStart || !dragEnd) {
+  const handleMouseUp = (date?: Date) => {
+    if (!isDragging) {
+      return;
+    }
+
+    // If this was a click (not a drag), toggle the single date
+    if (!isDragRef.current && date && !disabled?.(date)) {
+      if (isDateSelected(date)) {
+        onSelect(selected.filter(d => !isSameDay(d, date)));
+      } else {
+        onSelect([...selected, date]);
+      }
       setIsDragging(false);
+      setDragStart(null);
+      setDragEnd(null);
+      dragStartRef.current = null;
+      return;
+    }
+
+    // Handle drag range selection
+    if (!dragStart || !dragEnd) {
+      setIsDragging(false);
+      dragStartRef.current = null;
       return;
     }
 
@@ -85,17 +122,10 @@ export function DraggableCalendar({
     setIsDragging(false);
     setDragStart(null);
     setDragEnd(null);
+    dragStartRef.current = null;
   };
 
-  const handleClick = (date: Date) => {
-    if (disabled?.(date)) return;
-    
-    if (isDateSelected(date)) {
-      onSelect(selected.filter(d => !isSameDay(d, date)));
-    } else {
-      onSelect([...selected, date]);
-    }
-  };
+  // Click is now handled in handleMouseUp when isDragRef.current is false
 
   // Handle mouse up outside the calendar
   React.useEffect(() => {
@@ -177,8 +207,8 @@ export function DraggableCalendar({
                       "hover:bg-accent hover:text-accent-foreground"
                   )}
                   onMouseDown={(e) => handleMouseDown(day, e)}
-                  onMouseEnter={() => handleMouseEnter(day)}
-                  onClick={() => !isDragging && handleClick(day)}
+                  onMouseEnter={(e) => handleMouseEnter(day, e)}
+                  onMouseUp={() => handleMouseUp(day)}
                 >
                   {format(day, 'd')}
                 </div>

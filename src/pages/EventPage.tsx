@@ -1,21 +1,23 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { 
   CalendarCheck, 
-  Share2, 
   Plus, 
   Check, 
   Users,
   ArrowLeft,
   Pencil,
   Eye,
-  EyeOff
+  EyeOff,
+  Copy
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useToast } from '@/hooks/use-toast';
 import { AvailabilityGrid } from '@/components/AvailabilityGrid';
 import { RecommendedTimes } from '@/components/RecommendedTimes';
@@ -30,6 +32,7 @@ import type { EventData, TimeSlot, Availability } from '@/types/event';
 const EventPage = () => {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
+  const gridRef = useRef<HTMLDivElement>(null);
   const [event, setEvent] = useState<EventData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -40,6 +43,7 @@ const EventPage = () => {
   const [copied, setCopied] = useState(false);
   const [showOthersAvailability, setShowOthersAvailability] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [filterParticipant, setFilterParticipant] = useState<string | null>(null);
 
   const loadEvent = useCallback(async () => {
     if (!id) return;
@@ -123,7 +127,25 @@ const EventPage = () => {
     setCurrentUserEmail(undefined);
     // Show others' availability again after canceling
     setShowOthersAvailability(true);
+    setFilterParticipant(null);
   };
+
+  const handleParticipantClick = (participantName: string) => {
+    // Toggle filter: if same name clicked, clear filter
+    if (filterParticipant === participantName) {
+      setFilterParticipant(null);
+    } else {
+      setFilterParticipant(participantName);
+      // Scroll to top of grid
+      gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  // Create filtered event data when filtering by participant
+  const filteredEvent = filterParticipant && event ? {
+    ...event,
+    availabilities: event.availabilities.filter(a => a.participantName === filterParticipant)
+  } : event;
 
   if (loading) {
     return (
@@ -163,8 +185,8 @@ const EventPage = () => {
             <span className="font-semibold text-lg">Freetime Matcher</span>
           </Link>
           <Button variant="outline" size="sm" onClick={handleCopyLink}>
-            {copied ? <Check className="h-4 w-4 mr-2" /> : <Share2 className="h-4 w-4 mr-2" />}
-            {copied ? 'Copied!' : 'Share'}
+            {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+            {copied ? 'Copied!' : 'Copy Link'}
           </Button>
         </div>
       </header>
@@ -185,10 +207,28 @@ const EventPage = () => {
               )}
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="flex items-center gap-1">
-                <Users className="h-3 w-3" />
-                {event.availabilities.length} response{event.availabilities.length !== 1 ? 's' : ''}
-              </Badge>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Badge variant="secondary" className="flex items-center gap-1 cursor-pointer hover:bg-secondary/80 transition-colors">
+                    <Users className="h-3 w-3" />
+                    {event.availabilities.length} response{event.availabilities.length !== 1 ? 's' : ''}
+                  </Badge>
+                </PopoverTrigger>
+                <PopoverContent className="w-48 p-3" align="end">
+                  <h4 className="font-medium text-sm mb-2">Respondents</h4>
+                  {event.availabilities.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No responses yet</p>
+                  ) : (
+                    <ul className="space-y-1">
+                      {event.availabilities.map((a) => (
+                        <li key={a.participantId} className="text-sm">
+                          {a.participantName}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
         </div>
@@ -198,12 +238,23 @@ const EventPage = () => {
           <TopRecommendation event={event} />
         </div>
 
-        <div className="grid lg:grid-cols-[1fr_320px] gap-6">
+        <div ref={gridRef} className="grid lg:grid-cols-[1fr_320px] gap-6">
           {/* Main Grid Section */}
           <div className="space-y-4">
-            {/* Controls */}
+            {/* Controls with Edit Button */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-card rounded-lg border border-border">
               <div className="flex items-center gap-3">
+                {!isEditMode && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowParticipantForm(true)}
+                    className="gap-2"
+                  >
+                    <Pencil className="h-4 w-4" />
+                    Edit
+                  </Button>
+                )}
                 {showOthersAvailability ? (
                   <Eye className="h-4 w-4 text-muted-foreground" />
                 ) : (
@@ -218,12 +269,24 @@ const EventPage = () => {
                   onCheckedChange={setShowOthersAvailability}
                 />
               </div>
-              <Legend mode="heatmap" />
+              <div className="flex items-center gap-3">
+                {filterParticipant && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setFilterParticipant(null)}
+                    className="text-xs"
+                  >
+                    Clear filter: {filterParticipant}
+                  </Button>
+                )}
+                <Legend mode="heatmap" />
+              </div>
             </div>
 
             {/* Grid */}
             <AvailabilityGrid
-              event={event}
+              event={filteredEvent!}
               currentUser={currentUser ?? undefined}
               isEditMode={isEditMode}
               visualizationMode="heatmap"
@@ -232,17 +295,8 @@ const EventPage = () => {
               showOthersAvailability={showOthersAvailability}
             />
 
-            {/* Action Button */}
-            {!isEditMode ? (
-              <Button
-                onClick={() => setShowParticipantForm(true)}
-                className="w-full sm:w-auto"
-                size="lg"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Add Your Availability
-              </Button>
-            ) : (
+            {/* Action Buttons */}
+            {isEditMode && (
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button onClick={handleSaveAvailability} size="lg" className="flex-1 sm:flex-none" disabled={isSaving}>
                   {isSaving ? (
@@ -293,15 +347,18 @@ const EventPage = () => {
                 </h3>
                 <div className="space-y-2">
                   {event.availabilities.map((a) => (
-                    <div
+                    <button
                       key={a.participantId}
-                      className="flex items-center justify-between text-sm"
+                      onClick={() => handleParticipantClick(a.participantName)}
+                      className={`w-full flex items-center justify-between text-sm p-2 rounded-md transition-colors hover:bg-muted/50 ${
+                        filterParticipant === a.participantName ? 'bg-primary/10 text-primary' : ''
+                      }`}
                     >
                       <span>{a.participantName}</span>
                       <span className="text-muted-foreground">
                         {a.slots.length} slot{a.slots.length !== 1 ? 's' : ''}
                       </span>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </div>

@@ -178,7 +178,7 @@ export const EventForm = () => {
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="slotLength" className="text-sm font-medium">
-            Slot Length <span className="text-muted-foreground">(optional)</span>
+            Slot Length
           </Label>
           <Select value={slotLength} onValueChange={setSlotLength}>
             <SelectTrigger>

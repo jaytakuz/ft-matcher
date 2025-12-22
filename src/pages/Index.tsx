@@ -1,6 +1,7 @@
-import { CalendarCheck, Users, Zap, ArrowRight } from 'lucide-react';
-import { EventForm } from '@/components/EventForm';
+import { Link } from 'react-router-dom';
+import { CalendarCheck, Users, Zap, ArrowRight, Plus } from 'lucide-react';
 import { EventSearch } from '@/components/EventSearch';
+import { Button } from '@/components/ui/button';
 
 const Index = () => {
   return (
@@ -12,6 +13,12 @@ const Index = () => {
             <CalendarCheck className="h-6 w-6 text-primary" />
             <span className="font-semibold text-lg">Freetime Matcher</span>
           </div>
+          <Link to="/create">
+            <Button size="sm">
+              <Plus className="mr-2 h-4 w-4" />
+              Create Event
+            </Button>
+          </Link>
         </div>
       </header>
 
@@ -23,9 +30,15 @@ const Index = () => {
               Find the perfect time to{' '}
               <span className="text-primary">meet</span>
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
               Stop the endless back-and-forth. Create an event, share the link, and let everyone mark their availability. We'll find the overlap.
             </p>
+            <Link to="/create">
+              <Button size="lg" className="h-12 px-8">
+                <Plus className="mr-2 h-5 w-5" />
+                Create New Event
+              </Button>
+            </Link>
           </div>
 
           {/* Features */}
@@ -48,17 +61,9 @@ const Index = () => {
           </div>
 
           {/* Join existing event */}
-          <div className="bg-secondary/30 border border-border/50 rounded-xl p-6 mb-6">
+          <div className="bg-secondary/30 border border-border/50 rounded-xl p-6">
             <h2 className="text-lg font-medium mb-3">Join an existing event</h2>
             <EventSearch />
-          </div>
-
-          {/* Form Card */}
-          <div className="bg-card border border-border rounded-xl p-6 md:p-8 shadow-lg">
-            <h2 className="text-xl font-semibold mb-6 text-center">
-              Create Your Event
-            </h2>
-            <EventForm />
           </div>
         </div>
       </main>
