@@ -112,8 +112,10 @@ export const AvailabilityGrid = ({
     return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
   }, []);
 
-  const handleTouchStart = (date: string, time: string) => {
+  const handleTouchStart = (date: string, time: string, e: React.TouchEvent) => {
     if (!isEditMode) return;
+    // Prevent default to stop vertical scrolling when selecting slots
+    e.preventDefault();
     setIsDragging(true);
     const isCurrentlySelected = isSlotSelected(date, time);
     setIsAdding(!isCurrentlySelected);
@@ -122,6 +124,7 @@ export const AvailabilityGrid = ({
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isDragging || !isEditMode) return;
+    // Prevent vertical scrolling during drag
     e.preventDefault();
     const touch = e.touches[0];
     const element = document.elementFromPoint(touch.clientX, touch.clientY);
@@ -132,7 +135,8 @@ export const AvailabilityGrid = ({
     }
   };
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
     setIsDragging(false);
   };
 
@@ -163,7 +167,7 @@ export const AvailabilityGrid = ({
         </div>
       )}
 
-      <div ref={gridRef} className="flex overflow-x-auto" onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+      <div ref={gridRef} className="flex overflow-x-auto" style={{ touchAction: isEditMode ? 'pan-x' : 'auto' }} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
         {/* Time column - sticky */}
         <div className="sticky left-0 z-10 bg-card border-r border-border">
           <div className="h-16 border-b border-border" />
@@ -203,14 +207,14 @@ export const AvailabilityGrid = ({
                     <div
                       data-slot={`${dateStr}|${time}`}
                       className={cn(
-                        "h-8 border-b border-r border-border/30 transition-colors",
+                        "h-8 border-b border-r border-border/50 transition-colors",
                         colorClass,
                         isEditMode && "cursor-pointer hover:opacity-80",
                         isEditMode && isSelected && "ring-1 ring-primary-foreground/50 ring-inset"
                       )}
                       onMouseDown={() => handleMouseDown(dateStr, time)}
                       onMouseEnter={() => handleMouseEnter(dateStr, time)}
-                      onTouchStart={() => handleTouchStart(dateStr, time)}
+                      onTouchStart={(e) => handleTouchStart(dateStr, time, e)}
                     />
                   );
 

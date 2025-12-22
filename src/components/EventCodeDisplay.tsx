@@ -50,10 +50,10 @@ export const EventCodeDisplay = ({ eventId }: EventCodeDisplayProps) => {
         </Button>
       </div>
       <Button
-        variant="ghost"
+        variant="secondary"
         size="sm"
         onClick={handleCopyUrl}
-        className="w-full text-muted-foreground hover:text-foreground"
+        className="w-full hover:bg-secondary/80"
       >
         {copiedUrl ? (
           <>
