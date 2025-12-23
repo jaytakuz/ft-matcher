@@ -26,6 +26,7 @@ import { ParticipantForm } from '@/components/ParticipantForm';
 import { Legend } from '@/components/Legend';
 import { EventCodeDisplay } from '@/components/EventCodeDisplay';
 import { AddToCalendarButton } from '@/components/AddToCalendarButton';
+import { OverlapSlider } from '@/components/OverlapSlider';
 import { getEvent, saveAvailability } from '@/lib/eventService';
 import type { EventData, TimeSlot, Availability } from '@/types/event';
 
@@ -44,6 +45,7 @@ const EventPage = () => {
   const [showOthersAvailability, setShowOthersAvailability] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [filterParticipant, setFilterParticipant] = useState<string | null>(null);
+  const [overlapFilter, setOverlapFilter] = useState<{ min: number | null; max: number | null }>({ min: null, max: null });
 
   const loadEvent = useCallback(async () => {
     if (!id) return;
@@ -139,6 +141,10 @@ const EventPage = () => {
       // Scroll to top of grid
       gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+  };
+
+  const handleOverlapFilterChange = (min: number | null, max: number | null) => {
+    setOverlapFilter({ min, max });
   };
 
   // Create filtered event data when filtering by participant
@@ -284,6 +290,14 @@ const EventPage = () => {
               </div>
             </div>
 
+            {/* Overlap Slider Filter */}
+            {!isEditMode && event.availabilities.length > 0 && (
+              <OverlapSlider 
+                event={event} 
+                onFilterChange={handleOverlapFilterChange} 
+              />
+            )}
+
             {/* Grid */}
             <AvailabilityGrid
               event={filteredEvent!}
@@ -293,6 +307,7 @@ const EventPage = () => {
               selectedSlots={selectedSlots}
               onSlotsChange={setSelectedSlots}
               showOthersAvailability={showOthersAvailability}
+              overlapFilter={overlapFilter}
             />
 
             {/* Action Buttons */}
