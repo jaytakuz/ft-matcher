@@ -15,6 +15,7 @@ interface AvailabilityGridProps {
   selectedSlots: TimeSlot[];
   onSlotsChange: (slots: TimeSlot[]) => void;
   showOthersAvailability?: boolean;
+  overlapFilter?: { min: number | null; max: number | null };
 }
 
 const DAYS_PER_PAGE = 7;
@@ -26,7 +27,8 @@ export const AvailabilityGrid = ({
   visualizationMode,
   selectedSlots,
   onSlotsChange,
-  showOthersAvailability = true
+  showOthersAvailability = true,
+  overlapFilter
 }: AvailabilityGridProps) => {
   const gridRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -59,8 +61,23 @@ export const AvailabilityGrid = ({
 
   const totalParticipants = event.availabilities.length || 1;
 
+  const isSlotInOverlapRange = (count: number): boolean => {
+    if (!overlapFilter || (overlapFilter.min === null && overlapFilter.max === null)) {
+      return true;
+    }
+    const min = overlapFilter.min ?? 0;
+    const max = overlapFilter.max ?? totalParticipants;
+    return count >= min && count <= max;
+  };
+
   const getHeatmapColor = (count: number): string => {
     if (!showOthersAvailability) return 'bg-available-0';
+    
+    // Check if slot is outside the overlap filter range
+    if (!isSlotInOverlapRange(count)) {
+      return 'bg-muted/20'; // Dimmed/hidden appearance
+    }
+    
     if (count === 0) return 'bg-available-0';
     const percentage = count / totalParticipants * 100;
     if (percentage <= 25) return 'bg-available-25';
