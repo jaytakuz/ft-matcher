@@ -98,7 +98,7 @@ export const OverlapSlider = ({ event, onFilterChange }: OverlapSliderProps) => 
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 w-full sm:w-auto">
       {/* Toggle Button */}
       <Button
         variant={isOpen ? "secondary" : "outline"}
