@@ -98,17 +98,16 @@ export const OverlapSlider = ({ event, onFilterChange }: OverlapSliderProps) => 
   }
 
   return (
-    <div className="space-y-3 w-full sm:w-auto">
+    <div className="space-y-3">
       {/* Toggle Button */}
       <Button
         variant={isOpen ? "secondary" : "outline"}
         size="sm"
         onClick={handleToggle}
-        className="gap-2 text-xs sm:text-sm"
+        className="gap-2"
       >
         <SlidersHorizontal className="h-4 w-4" />
-        <span className="hidden sm:inline">Filter by Overlap</span>
-        <span className="sm:hidden">Filter</span>
+        Filter by Overlap
         {isOpen && (
           <span className="text-xs bg-primary/20 px-1.5 py-0.5 rounded">
             {minOverlapValue}-{maxOverlapValue}
@@ -118,10 +117,10 @@ export const OverlapSlider = ({ event, onFilterChange }: OverlapSliderProps) => 
 
       {/* Slider Panel */}
       {isOpen && (
-        <div className="bg-muted/30 border border-border rounded-lg p-3 sm:p-4 space-y-3 sm:space-y-4 animate-fade-in">
+        <div className="bg-muted/30 border border-border rounded-lg p-4 space-y-4 animate-fade-in">
           {/* Header */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs sm:text-sm font-medium">
+            <div className="flex items-center gap-2 text-sm font-medium">
               <Users className="h-4 w-4 text-primary" />
               <span>Overlap Filter</span>
             </div>
@@ -137,23 +136,23 @@ export const OverlapSlider = ({ event, onFilterChange }: OverlapSliderProps) => 
           </div>
 
           {/* Stats Row */}
-          <div className="grid grid-cols-3 gap-1 sm:gap-2 text-center">
-            <div className="bg-background rounded-md p-1.5 sm:p-2">
-              <div className="text-[10px] sm:text-xs text-muted-foreground">Total</div>
-              <div className="text-base sm:text-lg font-semibold text-primary">{maxParticipants}</div>
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="bg-background rounded-md p-2">
+              <div className="text-xs text-muted-foreground">Total</div>
+              <div className="text-lg font-semibold text-primary">{maxParticipants}</div>
             </div>
-            <div className="bg-background rounded-md p-1.5 sm:p-2">
-              <div className="text-[10px] sm:text-xs text-muted-foreground">Min</div>
-              <div className="text-base sm:text-lg font-semibold text-foreground">{minOverlapValue}</div>
+            <div className="bg-background rounded-md p-2">
+              <div className="text-xs text-muted-foreground">Min Showing</div>
+              <div className="text-lg font-semibold text-foreground">{minOverlapValue}</div>
             </div>
-            <div className="bg-background rounded-md p-1.5 sm:p-2">
-              <div className="text-[10px] sm:text-xs text-muted-foreground">Max</div>
-              <div className="text-base sm:text-lg font-semibold text-foreground">{maxOverlapValue}</div>
+            <div className="bg-background rounded-md p-2">
+              <div className="text-xs text-muted-foreground">Max Showing</div>
+              <div className="text-lg font-semibold text-foreground">{maxOverlapValue}</div>
             </div>
           </div>
 
           {/* Range Slider */}
-          <div className="px-1 sm:px-2">
+          <div className="px-2">
             <Slider
               value={rangeValue}
               onValueChange={handleRangeChange}
@@ -165,19 +164,19 @@ export const OverlapSlider = ({ event, onFilterChange }: OverlapSliderProps) => 
           </div>
 
           {/* Available Values Display */}
-          <div className="flex items-center justify-between text-[10px] sm:text-xs text-muted-foreground px-1">
-            <span>0</span>
+          <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
+            <span>0 people</span>
             <span>{maxParticipants} people</span>
           </div>
 
           {/* Active Values Pills */}
           {availableOverlapValues.length > 2 && (
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-1.5">
               {availableOverlapValues.map((val, idx) => (
                 <span
                   key={val}
                   className={cn(
-                    "text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full transition-colors",
+                    "text-xs px-2 py-0.5 rounded-full transition-colors",
                     idx >= rangeValue[0] && idx <= rangeValue[1]
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted text-muted-foreground"
@@ -189,7 +188,7 @@ export const OverlapSlider = ({ event, onFilterChange }: OverlapSliderProps) => 
             </div>
           )}
 
-          <p className="text-[10px] sm:text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Showing slots where {minOverlapValue === maxOverlapValue 
               ? `exactly ${minOverlapValue} ${minOverlapValue === 1 ? 'person is' : 'people are'}`
               : `${minOverlapValue} to ${maxOverlapValue} people are`
