@@ -74,7 +74,7 @@ export const AvailabilityGrid = ({
   };
 
   const truncateName = (name: string, maxLen: number = 5): string => {
-    return name.length > maxLen ? name.slice(0, maxLen) + '…' : name;
+    return name.length > maxLen ? name.slice(0, maxLen) : name;
   };
 
   const totalParticipants = event.availabilities.length || 1;
