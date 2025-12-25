@@ -2,6 +2,19 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+// Mock mode: Set to true to bypass actual Google OAuth
+const MOCK_AUTH_MODE = true;
+
+// Mock user for demo purposes
+const MOCK_USER = {
+  id: 'mock-user-id',
+  email: 'demo@example.com',
+  app_metadata: {},
+  user_metadata: { full_name: 'Demo User' },
+  aud: 'authenticated',
+  created_at: new Date().toISOString(),
+} as User;
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -18,7 +31,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
+    if (MOCK_AUTH_MODE) {
+      // In mock mode, check localStorage for mock session
+      const mockSession = localStorage.getItem('mock_auth_session');
+      if (mockSession) {
+        setUser(MOCK_USER);
+      }
+      setLoading(false);
+      return;
+    }
+
+    // Real auth mode
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
@@ -27,7 +50,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
-    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -38,6 +60,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signInWithGoogle = async () => {
+    if (MOCK_AUTH_MODE) {
+      // Mock sign-in: just set the mock user
+      localStorage.setItem('mock_auth_session', 'true');
+      setUser(MOCK_USER);
+      return;
+    }
+
     const redirectUrl = `${window.location.origin}/create`;
     await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -48,6 +77,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
+    if (MOCK_AUTH_MODE) {
+      localStorage.removeItem('mock_auth_session');
+      setUser(null);
+      return;
+    }
+
     await supabase.auth.signOut();
   };
 
