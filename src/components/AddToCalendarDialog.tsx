@@ -52,12 +52,12 @@ export const AddToCalendarDialog = ({
   }, [event.name, event.availabilities]);
 
   useEffect(() => {
-    if (selectedSlot) {
+    if (open && selectedSlot) {
       setDate(selectedSlot.date);
       setStartTime(selectedSlot.startTime);
       setEndTime(selectedSlot.endTime);
     }
-  }, [selectedSlot]);
+  }, [open, selectedSlot]);
 
   const handleParticipantToggle = (name: string) => {
     setSelectedParticipants((prev) =>
