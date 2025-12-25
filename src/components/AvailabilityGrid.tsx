@@ -281,7 +281,7 @@ export const AvailabilityGrid = ({
                         </TooltipTrigger>
                         <TooltipContent side="top" className="max-w-[200px]">
                           <p className="font-medium text-sm mb-1">
-                            {participants.length}/{totalParticipants} available
+                            {unavailable.length} unavailable
                           </p>
                           {unavailable.length > 0 && (
                             <p className="text-xs text-destructive">
