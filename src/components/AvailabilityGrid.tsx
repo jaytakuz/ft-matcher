@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { generateTimeSlots, formatTimeSlot, formatDateHeader } from '@/lib/dateUtils';
 import { getThaiHoliday, formatDateToYMD } from '@/lib/thaiHolidays';
 import type { EventData, TimeSlot, VisualizationMode, Availability } from '@/types/event';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 
 interface AvailabilityGridProps {
@@ -305,11 +305,11 @@ export const AvailabilityGrid = ({
                     const hasMoreUnavailable = unavailable.length > 5;
                     
                     return (
-                      <Tooltip key={getSlotKey(dateStr, time)}>
-                        <TooltipTrigger asChild>
+                      <Popover key={getSlotKey(dateStr, time)}>
+                        <PopoverTrigger asChild>
                           {slotContent}
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-[200px]">
+                        </PopoverTrigger>
+                        <PopoverContent side="top" className="max-w-[200px] p-2">
                           <p className="font-medium text-sm mb-1 text-destructive">
                             {unavailable.length} unavailable
                           </p>
@@ -319,8 +319,8 @@ export const AvailabilityGrid = ({
                               {hasMoreUnavailable && ` +${unavailable.length - 5}`}
                             </p>
                           )}
-                        </TooltipContent>
-                      </Tooltip>
+                        </PopoverContent>
+                      </Popover>
                     );
                   }
                   return <div key={getSlotKey(dateStr, time)}>{slotContent}</div>;
