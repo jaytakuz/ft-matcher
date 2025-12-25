@@ -47,7 +47,7 @@ const EventPage = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [overlapFilter, setOverlapFilter] = useState<{ min: number | null; max: number | null }>({ min: null, max: null });
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<{ date: string; startTime: string; endTime: string } | null>(null);
-  const [showHolidays, setShowHolidays] = useState(false);
+  const [showHolidays, setShowHolidays] = useState(true);
 
   // Calculate the first best time recommendation
   const firstRecommendation = useMemo((): RecommendedSlot | undefined => {
