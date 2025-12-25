@@ -416,7 +416,7 @@ const EventPage = () => {
             {/* Action Buttons */}
             {isEditMode && (
               <div className="flex flex-col sm:flex-row gap-3">
-                <Button onClick={handleSaveAvailability} size="lg" className="flex-1 sm:flex-none" disabled={isSaving}>
+                <Button onClick={handleSaveAvailability} variant="default" size="lg" className="flex-1 sm:flex-none h-11" disabled={isSaving}>
                   {isSaving ? (
                     <span className="animate-pulse">Saving...</span>
                   ) : (
@@ -426,7 +426,7 @@ const EventPage = () => {
                     </>
                   )}
                 </Button>
-                <Button onClick={handleCancelEdit} variant="outline" size="lg">
+                <Button onClick={handleCancelEdit} variant="outline" size="lg" className="h-11">
                   Cancel
                 </Button>
                 {currentUser && (
