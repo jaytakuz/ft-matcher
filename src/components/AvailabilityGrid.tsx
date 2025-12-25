@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { generateTimeSlots, formatTimeSlot, formatDateHeader } from '@/lib/dateUtils';
 import { getThaiHoliday, formatDateToYMD } from '@/lib/thaiHolidays';
 import type { EventData, TimeSlot, VisualizationMode, Availability } from '@/types/event';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { SlotTooltip } from '@/components/SlotTooltip';
 import { Button } from '@/components/ui/button';
 
 interface AvailabilityGridProps {
@@ -305,22 +305,25 @@ export const AvailabilityGrid = ({
                     const hasMoreUnavailable = unavailable.length > 5;
                     
                     return (
-                      <Popover key={getSlotKey(dateStr, time)}>
-                        <PopoverTrigger asChild>
-                          {slotContent}
-                        </PopoverTrigger>
-                        <PopoverContent side="top" className="max-w-[200px] p-2">
-                          <p className="font-medium text-sm mb-1 text-destructive">
-                            {unavailable.length} unavailable
-                          </p>
-                          {unavailable.length > 0 && (
-                            <p className="text-xs text-foreground">
-                              {displayUnavailable.map(n => truncateName(n)).join(', ')}
-                              {hasMoreUnavailable && ` +${unavailable.length - 5}`}
+                      <SlotTooltip 
+                        key={getSlotKey(dateStr, time)} 
+                        slotKey={getSlotKey(dateStr, time)}
+                        content={
+                          <>
+                            <p className="font-medium text-sm mb-1 text-destructive">
+                              {unavailable.length} unavailable
                             </p>
-                          )}
-                        </PopoverContent>
-                      </Popover>
+                            {unavailable.length > 0 && (
+                              <p className="text-xs text-foreground">
+                                {displayUnavailable.map(n => truncateName(n)).join(', ')}
+                                {hasMoreUnavailable && ` +${unavailable.length - 5}`}
+                              </p>
+                            )}
+                          </>
+                        }
+                      >
+                        {slotContent}
+                      </SlotTooltip>
                     );
                   }
                   return <div key={getSlotKey(dateStr, time)}>{slotContent}</div>;
