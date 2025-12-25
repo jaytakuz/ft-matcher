@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { 
@@ -47,6 +47,94 @@ const EventPage = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [overlapFilter, setOverlapFilter] = useState<{ min: number | null; max: number | null }>({ min: null, max: null });
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<{ date: string; startTime: string; endTime: string } | null>(null);
+
+  // Calculate the first best time recommendation
+  const firstRecommendation = useMemo((): RecommendedSlot | undefined => {
+    if (!event || event.availabilities.length < 2) return undefined;
+    
+    const slotLength = event.slotLength || 30;
+    const eventDuration = event.duration;
+    
+    const slotMap = new Map<string, Set<string>>();
+    event.availabilities.forEach(availability => {
+      availability.slots.forEach(slot => {
+        const key = `${slot.date}|${slot.time}`;
+        if (!slotMap.has(key)) slotMap.set(key, new Set());
+        slotMap.get(key)!.add(availability.participantName);
+      });
+    });
+
+    const recommendations: RecommendedSlot[] = [];
+    const dates = [...new Set(event.availabilities.flatMap(a => a.slots.map(s => s.date)))].sort();
+    const requiredSlots = eventDuration ? Math.ceil(eventDuration / slotLength) : null;
+
+    const isConsecutiveTime = (t1: string, t2: string): boolean => {
+      const [h1, m1] = t1.split(':').map(Number);
+      const [h2, m2] = t2.split(':').map(Number);
+      return (h2 * 60 + m2) - (h1 * 60 + m1) === slotLength;
+    };
+
+    const addMinutesToTime = (time: string, mins: number): string => {
+      const [h, m] = time.split(':').map(Number);
+      const total = h * 60 + m + mins;
+      return `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+    };
+
+    dates.forEach(date => {
+      const dateSlots = Array.from(slotMap.entries())
+        .filter(([key]) => key.startsWith(date))
+        .map(([key, participants]) => ({ time: key.split('|')[1], participants: Array.from(participants) }))
+        .filter(s => s.participants.length >= 2)
+        .sort((a, b) => a.time.localeCompare(b.time));
+
+      let currentGroup: typeof dateSlots = [];
+      dateSlots.forEach((slot, i) => {
+        const prev = dateSlots[i - 1];
+        const isContinuous = prev &&
+          slot.participants.length === prev.participants.length &&
+          slot.participants.every(p => prev.participants.includes(p)) &&
+          isConsecutiveTime(prev.time, slot.time);
+
+        if (!isContinuous && currentGroup.length > 0) {
+          if (!requiredSlots || currentGroup.length >= requiredSlots) {
+            const groupDuration = currentGroup.length * slotLength;
+            let durationScore = groupDuration;
+            if (requiredSlots) {
+              const target = requiredSlots * slotLength;
+              durationScore = groupDuration === target ? 500 : groupDuration > target ? 400 - (groupDuration - target) : groupDuration;
+            }
+            recommendations.push({
+              date,
+              startTime: currentGroup[0].time,
+              endTime: addMinutesToTime(currentGroup[currentGroup.length - 1].time, slotLength),
+              participants: currentGroup[0].participants,
+              score: currentGroup[0].participants.length * 1000 + durationScore,
+            });
+          }
+          currentGroup = [];
+        }
+        currentGroup.push(slot);
+      });
+
+      if (currentGroup.length > 0 && (!requiredSlots || currentGroup.length >= requiredSlots)) {
+        const groupDuration = currentGroup.length * slotLength;
+        let durationScore = groupDuration;
+        if (requiredSlots) {
+          const target = requiredSlots * slotLength;
+          durationScore = groupDuration === target ? 500 : groupDuration > target ? 400 - (groupDuration - target) : groupDuration;
+        }
+        recommendations.push({
+          date,
+          startTime: currentGroup[0].time,
+          endTime: addMinutesToTime(currentGroup[currentGroup.length - 1].time, slotLength),
+          participants: currentGroup[0].participants,
+          score: currentGroup[0].participants.length * 1000 + durationScore,
+        });
+      }
+    });
+
+    return recommendations.sort((a, b) => b.score - a.score)[0];
+  }, [event]);
 
   const loadEvent = useCallback(async () => {
     if (!id) return;
@@ -347,7 +435,7 @@ const EventPage = () => {
             <EventCodeDisplay eventId={event.id} />
 
             {/* Add to Calendar Button */}
-            <AddToCalendarButton event={event} />
+            <AddToCalendarButton event={event} selectedSlot={firstRecommendation} />
 
             {/* Best Times List */}
             <RecommendedTimes event={event} onSelectTime={handleSelectTimeSlot} />
