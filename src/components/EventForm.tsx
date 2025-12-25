@@ -144,7 +144,7 @@ export const EventForm = () => {
       </div>
 
       {/* Event Type Toggle */}
-      <div className="flex items-center justify-between p-4 rounded-lg border border-border bg-muted/30">
+      <div className="flex flex-col gap-3 p-4 rounded-lg border border-border bg-muted/30">
         <div className="space-y-0.5">
           <Label className="text-sm font-medium">Event Type</Label>
           <p className="text-xs text-muted-foreground">
