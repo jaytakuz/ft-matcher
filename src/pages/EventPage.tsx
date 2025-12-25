@@ -389,15 +389,15 @@ const EventPage = () => {
                   Show Holidays
                 </Label>
               </div>
+              
+              {/* Overlap Slider Filter */}
+              {!isEditMode && event.availabilities.length > 0 && (
+                <OverlapSlider 
+                  event={event} 
+                  onFilterChange={handleOverlapFilterChange} 
+                />
+              )}
             </div>
-
-            {/* Overlap Slider Filter */}
-            {!isEditMode && event.availabilities.length > 0 && (
-              <OverlapSlider 
-                event={event} 
-                onFilterChange={handleOverlapFilterChange} 
-              />
-            )}
 
             {/* Grid */}
             <AvailabilityGrid
