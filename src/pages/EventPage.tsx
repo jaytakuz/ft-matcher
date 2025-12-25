@@ -386,7 +386,7 @@ const EventPage = () => {
                   onCheckedChange={setShowHolidays}
                 />
                 <Label htmlFor="show-holidays" className="text-sm cursor-pointer">
-                  แสดงวันหยุด
+                  Show Holidays
                 </Label>
               </div>
             </div>
