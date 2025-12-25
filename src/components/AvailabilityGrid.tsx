@@ -284,8 +284,8 @@ export const AvailabilityGrid = ({
                             {unavailable.length} unavailable
                           </p>
                           {unavailable.length > 0 && (
-                            <p className="text-xs text-green-500">
-                              Not free: {displayUnavailable.map(n => truncateName(n)).join(', ')}
+                            <p className="text-xs text-foreground">
+                              {displayUnavailable.map(n => truncateName(n)).join(', ')}
                               {hasMoreUnavailable && ` +${unavailable.length - 5}`}
                             </p>
                           )}
