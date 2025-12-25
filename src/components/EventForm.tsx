@@ -173,8 +173,8 @@ export const EventForm = () => {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="duration" className="text-sm font-medium">
-                Event Duration <span className="text-muted-foreground">(optional)</span>
+              <Label htmlFor="duration" className="text-sm font-medium text-muted-foreground">
+                Event Duration
               </Label>
               <Select value={duration} onValueChange={setDuration}>
                 <SelectTrigger>
