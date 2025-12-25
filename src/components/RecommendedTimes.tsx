@@ -118,7 +118,7 @@ export const RecommendedTimes = ({ event, onSelectTime }: RecommendedTimesProps)
       }
     });
 
-    return recommendations.sort((a, b) => b.score - a.score).slice(0, 5);
+    return recommendations.sort((a, b) => b.score - a.score).slice(0, 3);
   }, [event, slotLength, eventDuration]);
 
   if (recommendations.length === 0) {
