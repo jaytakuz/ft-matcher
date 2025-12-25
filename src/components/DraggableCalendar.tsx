@@ -125,6 +125,83 @@ export function DraggableCalendar({
     dragStartRef.current = null;
   };
 
+  // Touch handlers for mobile support
+  const touchStartRef = useRef<{ x: number; y: number; date: Date } | null>(null);
+  const isTouchDragRef = useRef(false);
+
+  const handleTouchStart = (date: Date, e: React.TouchEvent) => {
+    if (disabled?.(date)) return;
+    
+    const touch = e.touches[0];
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY, date };
+    isTouchDragRef.current = false;
+    
+    setIsDragging(true);
+    setDragStart(date);
+    setDragEnd(date);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || !touchStartRef.current) return;
+    
+    const touch = e.touches[0];
+    const dx = Math.abs(touch.clientX - touchStartRef.current.x);
+    const dy = Math.abs(touch.clientY - touchStartRef.current.y);
+    
+    if (dx > 10 || dy > 10) {
+      isTouchDragRef.current = true;
+      e.preventDefault(); // Prevent scroll when dragging
+    }
+    
+    // Find which date element we're over
+    const element = document.elementFromPoint(touch.clientX, touch.clientY);
+    const dateAttr = element?.getAttribute('data-date');
+    if (dateAttr) {
+      const targetDate = new Date(dateAttr);
+      if (!disabled?.(targetDate)) {
+        setDragEnd(targetDate);
+      }
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+
+    const date = touchStartRef.current?.date;
+    
+    // If this was a tap (not a drag), toggle the single date
+    if (!isTouchDragRef.current && date && !disabled?.(date)) {
+      if (isDateSelected(date)) {
+        onSelect(selected.filter(d => !isSameDay(d, date)));
+      } else {
+        onSelect([...selected, date]);
+      }
+    } else if (isTouchDragRef.current && dragStart && dragEnd) {
+      // Handle drag range selection
+      const start = isBefore(dragStart, dragEnd) ? dragStart : dragEnd;
+      const end = isAfter(dragStart, dragEnd) ? dragStart : dragEnd;
+      const rangeDates = eachDayOfInterval({ start, end }).filter(d => !disabled?.(d));
+
+      const allSelected = rangeDates.every(d => isDateSelected(d));
+      
+      let newSelection: Date[];
+      if (allSelected) {
+        newSelection = selected.filter(d => !rangeDates.some(rd => isSameDay(rd, d)));
+      } else {
+        const toAdd = rangeDates.filter(d => !isDateSelected(d));
+        newSelection = [...selected, ...toAdd];
+      }
+
+      onSelect(newSelection);
+    }
+
+    setIsDragging(false);
+    setDragStart(null);
+    setDragEnd(null);
+    touchStartRef.current = null;
+    isTouchDragRef.current = false;
+  };
+
   // Click is now handled in handleMouseUp when isDragRef.current is false
 
   // Handle mouse up outside the calendar
@@ -196,8 +273,9 @@ export function DraggableCalendar({
               return (
                 <div
                   key={dayIndex}
+                  data-date={day.toISOString()}
                   className={cn(
-                    "h-9 w-9 flex items-center justify-center text-sm rounded-md cursor-pointer transition-colors",
+                    "h-9 w-9 flex items-center justify-center text-sm rounded-md cursor-pointer transition-colors touch-none",
                     !isCurrentMonth && "opacity-50 text-muted-foreground",
                     isDisabled && "opacity-50 cursor-not-allowed",
                     isSelected && "bg-primary text-primary-foreground",
@@ -209,6 +287,9 @@ export function DraggableCalendar({
                   onMouseDown={(e) => handleMouseDown(day, e)}
                   onMouseEnter={(e) => handleMouseEnter(day, e)}
                   onMouseUp={() => handleMouseUp(day)}
+                  onTouchStart={(e) => handleTouchStart(day, e)}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
                 >
                   {format(day, 'd')}
                 </div>
