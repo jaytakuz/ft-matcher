@@ -280,11 +280,11 @@ export const AvailabilityGrid = ({
                           {slotContent}
                         </TooltipTrigger>
                         <TooltipContent side="top" className="max-w-[200px]">
-                          <p className="font-medium text-sm mb-1">
+                          <p className="font-medium text-sm mb-1 text-destructive">
                             {unavailable.length} unavailable
                           </p>
                           {unavailable.length > 0 && (
-                            <p className="text-xs text-destructive">
+                            <p className="text-xs text-green-500">
                               Not free: {displayUnavailable.map(n => truncateName(n)).join(', ')}
                               {hasMoreUnavailable && ` +${unavailable.length - 5}`}
                             </p>
