@@ -246,9 +246,14 @@ export const AvailabilityGrid = ({
                 {/* Date header */}
                 <div className={cn(
                   "flex flex-col items-center justify-center border-b border-border px-1",
-                  isDateOnly ? "h-20" : "h-16",
+                  isDateOnly ? "h-24" : "h-20",
                   holiday && "bg-destructive/10"
                 )}>
+                  {holiday && (
+                    <span className="text-[8px] leading-tight text-destructive font-medium text-center truncate max-w-full px-0.5 mb-0.5">
+                      {holiday.nameEn}
+                    </span>
+                  )}
                   <span className={cn(
                     "text-[10px] uppercase",
                     holiday ? "text-destructive" : "text-muted-foreground"
@@ -265,19 +270,6 @@ export const AvailabilityGrid = ({
                   )}>
                     {header.month}
                   </span>
-                  {holiday && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span className="text-[8px] text-destructive font-medium truncate max-w-full px-0.5">
-                          🎉
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="font-medium">{holiday.name}</p>
-                        <p className="text-xs text-muted-foreground">{holiday.nameEn}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  )}
                 </div>
 
                 {/* Time slots */}
