@@ -378,8 +378,8 @@ const EventPage = () => {
             </div>
 
             {/* Holiday Toggle & Overlap Slider */}
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-start gap-4">
+              <div className="flex items-center gap-2 mt-1.5">
                 <Switch
                   id="show-holidays"
                   checked={showHolidays}
