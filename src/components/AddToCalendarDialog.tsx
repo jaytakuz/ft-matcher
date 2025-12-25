@@ -83,12 +83,12 @@ export const AddToCalendarDialog = ({
     });
   };
 
-  const formatDateDisplay = () => {
-    if (!date) return '';
+  const formatDateDisplay = (dateStr: string) => {
+    if (!dateStr) return '';
     try {
-      return format(new Date(date), 'EEEE, MMMM d, yyyy');
+      return format(new Date(dateStr), 'EEEE, MMMM d, yyyy');
     } catch {
-      return date;
+      return dateStr;
     }
   };
 
@@ -126,10 +126,10 @@ export const AddToCalendarDialog = ({
               <Clock className="h-4 w-4 text-primary" />
               Date
             </Label>
-            {date && (
+            {selectedSlot?.date && (
               <p className="text-xs">
                 <span className="text-foreground">Top Pick!: </span>
-                <span className="text-primary font-medium">{formatDateDisplay()}</span>
+                <span className="text-primary font-medium">{formatDateDisplay(selectedSlot.date)}</span>
               </p>
             )}
             <Input
