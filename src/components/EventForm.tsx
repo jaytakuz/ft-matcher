@@ -14,12 +14,12 @@ import { generateEventId, generateTimeSlots, formatTimeSlot } from '@/lib/dateUt
 import { createEvent } from '@/lib/eventService';
 import { useToast } from '@/hooks/use-toast';
 import type { EventData } from '@/types/event';
-
 const timeOptions = generateTimeSlots('06:00', '24:00', 60);
-
 export const EventForm = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const [eventName, setEventName] = useState('');
   const [hostName, setHostName] = useState('');
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
@@ -29,12 +29,9 @@ export const EventForm = () => {
   const [slotLength, setSlotLength] = useState('30');
   const [isLoading, setIsLoading] = useState(false);
   const [dateOnly, setDateOnly] = useState(false);
-
   const handleCreateEvent = async () => {
     if (!eventName || !hostName || selectedDates.length === 0) return;
-
     setIsLoading(true);
-
     const eventData = {
       id: generateEventId(),
       name: eventName,
@@ -42,44 +39,35 @@ export const EventForm = () => {
       dates: selectedDates.map(d => d.toISOString()),
       startTime: dateOnly ? '00:00' : startTime,
       endTime: dateOnly ? '23:59' : endTime,
-      duration: dateOnly ? undefined : (duration && duration !== 'none' ? parseInt(duration) : undefined),
-      slotLength: dateOnly ? 1440 : parseInt(slotLength), // Full day = 1440 minutes
+      duration: dateOnly ? undefined : duration && duration !== 'none' ? parseInt(duration) : undefined,
+      slotLength: dateOnly ? 1440 : parseInt(slotLength),
+      // Full day = 1440 minutes
       dateOnly,
-      createdAt: new Date().toISOString(),
+      createdAt: new Date().toISOString()
     };
-
-    const { error } = await createEvent(eventData);
-
+    const {
+      error
+    } = await createEvent(eventData);
     if (error) {
       toast({
         title: "Error creating event",
         description: "Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
       setIsLoading(false);
       return;
     }
-    
     navigate(`/event/${eventData.id}`);
   };
-
   const isFormValid = eventName && hostName && selectedDates.length > 0;
-
-  return (
-    <div className="w-full max-w-md mx-auto space-y-6">
+  return <div className="w-full max-w-md mx-auto space-y-6">
       <div className="space-y-2">
         <Label htmlFor="eventName" className="text-sm font-medium">
           Event Name
         </Label>
         <div className="relative">
           <Sparkles className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="eventName"
-            value={eventName}
-            onChange={(e) => setEventName(e.target.value)}
-            placeholder="Team Sync, Project Kickoff..."
-            className="pl-10"
-          />
+          <Input id="eventName" value={eventName} onChange={e => setEventName(e.target.value)} placeholder="Team Sync, Project Kickoff..." className="pl-10" />
         </div>
       </div>
 
@@ -89,13 +77,7 @@ export const EventForm = () => {
         </Label>
         <div className="relative">
           <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="hostName"
-            value={hostName}
-            onChange={(e) => setHostName(e.target.value)}
-            placeholder="Enter your name"
-            className="pl-10"
-          />
+          <Input id="hostName" value={hostName} onChange={e => setHostName(e.target.value)} placeholder="Enter your name" className="pl-10" />
         </div>
       </div>
 
@@ -103,44 +85,23 @@ export const EventForm = () => {
         <Label className="text-sm font-medium">Select Dates</Label>
         <Popover>
           <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "w-full justify-start text-left font-normal",
-                !selectedDates.length && "text-muted-foreground"
-              )}
-            >
+            <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !selectedDates.length && "text-muted-foreground")}>
               <CalendarDays className="mr-2 h-4 w-4" />
-              {selectedDates.length > 0
-                ? `${selectedDates.length} date${selectedDates.length > 1 ? 's' : ''} selected`
-                : "Pick dates"}
+              {selectedDates.length > 0 ? `${selectedDates.length} date${selectedDates.length > 1 ? 's' : ''} selected` : "Pick dates"}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
-            <DraggableCalendar
-              selected={selectedDates}
-              onSelect={setSelectedDates}
-              disabled={(date) => date < addDays(new Date(), -1)}
-            />
+            <DraggableCalendar selected={selectedDates} onSelect={setSelectedDates} disabled={date => date < addDays(new Date(), -1)} />
           </PopoverContent>
         </Popover>
-        {selectedDates.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mt-2">
-            {selectedDates.slice(0, 5).map((date, i) => (
-              <span
-                key={i}
-                className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full"
-              >
+        {selectedDates.length > 0 && <div className="flex flex-wrap gap-1.5 mt-2">
+            {selectedDates.slice(0, 5).map((date, i) => <span key={i} className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full">
                 {format(date, 'MMM d')}
-              </span>
-            ))}
-            {selectedDates.length > 5 && (
-              <span className="px-2 py-0.5 bg-muted text-muted-foreground text-xs rounded-full">
+              </span>)}
+            {selectedDates.length > 5 && <span className="px-2 py-0.5 bg-muted text-muted-foreground text-xs rounded-full">
                 +{selectedDates.length - 5} more
-              </span>
-            )}
-          </div>
-        )}
+              </span>}
+          </div>}
       </div>
 
       {/* Event Type Toggle */}
@@ -151,22 +112,18 @@ export const EventForm = () => {
             {dateOnly ? 'Select available dates only' : 'Select available dates and times'}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="gap-2 flex items-center justify-center">
           <span className={cn("text-xs", !dateOnly && "text-primary font-medium")}>
             Dates & Times
           </span>
-          <Switch
-            checked={dateOnly}
-            onCheckedChange={setDateOnly}
-          />
+          <Switch checked={dateOnly} onCheckedChange={setDateOnly} />
           <span className={cn("text-xs", dateOnly && "text-primary font-medium")}>
             Dates Only
           </span>
         </div>
       </div>
 
-      {!dateOnly && (
-        <>
+      {!dateOnly && <>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-sm font-medium">Start Time</Label>
@@ -176,11 +133,9 @@ export const EventForm = () => {
                   <SelectValue placeholder="Select start time" />
                 </SelectTrigger>
                 <SelectContent className="max-h-60">
-                  {timeOptions.map((time) => (
-                    <SelectItem key={time} value={time}>
+                  {timeOptions.map(time => <SelectItem key={time} value={time}>
                       {formatTimeSlot(time)}
-                    </SelectItem>
-                  ))}
+                    </SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -192,11 +147,9 @@ export const EventForm = () => {
                   <SelectValue placeholder="Select end time" />
                 </SelectTrigger>
                 <SelectContent className="max-h-60">
-                  {timeOptions.map((time) => (
-                    <SelectItem key={time} value={time} disabled={time <= startTime}>
+                  {timeOptions.map(time => <SelectItem key={time} value={time} disabled={time <= startTime}>
                       {formatTimeSlot(time)}
-                    </SelectItem>
-                  ))}
+                    </SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -240,24 +193,13 @@ export const EventForm = () => {
               </Select>
             </div>
           </div>
-        </>
-      )}
+        </>}
 
-      <Button
-        onClick={handleCreateEvent}
-        disabled={!isFormValid || isLoading}
-        className="w-full h-12 text-base font-medium"
-        size="lg"
-      >
-        {isLoading ? (
-          <>
+      <Button onClick={handleCreateEvent} disabled={!isFormValid || isLoading} className="w-full h-12 text-base font-medium" size="lg">
+        {isLoading ? <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Creating...
-          </>
-        ) : (
-          "Create Event"
-        )}
+          </> : "Create Event"}
       </Button>
-    </div>
-  );
+    </div>;
 };
