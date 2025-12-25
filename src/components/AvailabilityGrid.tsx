@@ -221,11 +221,14 @@ export const AvailabilityGrid = ({
         </div>
       )}
 
-      <div ref={gridRef} className="flex overflow-x-auto" style={{ touchAction: isEditMode ? 'pan-x' : 'auto' }} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+      <div ref={gridRef} className="flex overflow-x-auto">
         {/* Time column - sticky (hidden for date-only mode) */}
         {!isDateOnly && (
-          <div className="sticky left-0 z-10 bg-card border-r border-border">
-            <div className="h-16 border-b border-border" />
+          <div 
+            className="sticky left-0 z-10 bg-card border-r border-border"
+            style={{ touchAction: 'pan-y' }}
+          >
+            <div className="h-20 border-b border-border" />
             {timeSlots.map(time => (
               <div key={time} className="h-8 px-2 text-xs text-muted-foreground border-b border-border min-w-[60px] flex items-start justify-end">
                 {formatTimeSlot(time)}
@@ -235,7 +238,7 @@ export const AvailabilityGrid = ({
         )}
 
         {/* Date columns */}
-        <div className="flex flex-1">
+        <div className="flex flex-1" style={{ touchAction: isEditMode ? 'pan-x' : 'auto' }} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
           {dates.map(date => {
             const dateStr = date.toISOString();
             const header = formatDateHeader(dateStr);
