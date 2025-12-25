@@ -119,7 +119,11 @@ export const TopRecommendation = ({ event, onSelect }: TopRecommendationProps) =
             </span>
           </div>
           <div className="mt-1 text-xs text-muted-foreground">
-            {topRecommendation.participants.join(', ')}
+            {topRecommendation.participants
+              .slice(0, 5)
+              .map(name => name.slice(0, 5))
+              .join(', ')}
+            {topRecommendation.participants.length > 5 && ` +${topRecommendation.participants.length - 5}`}
           </div>
         </div>
       </div>
