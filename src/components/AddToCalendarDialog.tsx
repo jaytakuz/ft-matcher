@@ -128,7 +128,7 @@ export const AddToCalendarDialog = ({
             </Label>
             {date && (
               <p className="text-xs">
-                <span className="text-foreground">Recommended time: </span>
+                <span className="text-foreground">Top Pick!: </span>
                 <span className="text-primary font-medium">{formatDateDisplay()}</span>
               </p>
             )}
