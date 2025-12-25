@@ -221,7 +221,7 @@ export const AvailabilityGrid = ({
         </div>
       )}
 
-      <div ref={gridRef} className="flex overflow-x-auto">
+      <div ref={gridRef} className="flex overflow-hidden">
         {/* Time column - sticky (hidden for date-only mode) */}
         {!isDateOnly && (
           <div 
@@ -245,7 +245,7 @@ export const AvailabilityGrid = ({
             const holiday = showHolidays ? getThaiHoliday(formatDateToYMD(date)) : undefined;
             
             return (
-              <div key={dateStr} className="flex-1 min-w-[48px] sm:min-w-[56px]">
+              <div key={dateStr} className="flex-1 min-w-0">
                 {/* Date header */}
                 <div className={cn(
                   "flex flex-col items-center justify-center border-b border-border px-1",
