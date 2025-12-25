@@ -335,8 +335,8 @@ const EventPage = () => {
           {/* Main Grid Section */}
           <div className="space-y-4">
             {/* Controls with Edit Button */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-card rounded-lg border border-border">
-              <div className="flex items-center gap-3">
+            <div className="flex flex-col gap-3 p-3 sm:p-4 bg-card rounded-lg border border-border overflow-hidden">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 {!isEditMode && (
                   <Button
                     variant="outline"
@@ -348,21 +348,23 @@ const EventPage = () => {
                     Add
                   </Button>
                 )}
-                {showOthersAvailability ? (
-                  <Eye className="h-4 w-4 text-muted-foreground" />
-                ) : (
-                  <EyeOff className="h-4 w-4 text-muted-foreground" />
-                )}
-                <Label htmlFor="show-others" className="text-sm cursor-pointer">
-                  {isEditMode ? "Show others' availability" : "Show all availability"}
-                </Label>
-                <Switch
-                  id="show-others"
-                  checked={showOthersAvailability}
-                  onCheckedChange={setShowOthersAvailability}
-                />
+                <div className="flex items-center gap-2">
+                  {showOthersAvailability ? (
+                    <Eye className="h-4 w-4 text-muted-foreground shrink-0" />
+                  ) : (
+                    <EyeOff className="h-4 w-4 text-muted-foreground shrink-0" />
+                  )}
+                  <Label htmlFor="show-others" className="text-xs sm:text-sm cursor-pointer whitespace-nowrap">
+                    {isEditMode ? "Show others'" : "Show all"}
+                  </Label>
+                  <Switch
+                    id="show-others"
+                    checked={showOthersAvailability}
+                    onCheckedChange={setShowOthersAvailability}
+                  />
+                </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 {selectedTimeSlot && (
                   <Button
                     variant="ghost"
@@ -370,7 +372,7 @@ const EventPage = () => {
                     onClick={() => setSelectedTimeSlot(null)}
                     className="text-xs"
                   >
-                    Clear time filter
+                    Clear filter
                   </Button>
                 )}
                 <Legend mode="heatmap" />
@@ -378,14 +380,14 @@ const EventPage = () => {
             </div>
 
             {/* Holiday Toggle & Overlap Slider */}
-            <div className="flex flex-wrap items-center gap-4">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4">
               <div className="flex items-center gap-2">
                 <Switch
                   id="show-holidays"
                   checked={showHolidays}
                   onCheckedChange={setShowHolidays}
                 />
-                <Label htmlFor="show-holidays" className="text-sm cursor-pointer">
+                <Label htmlFor="show-holidays" className="text-xs sm:text-sm cursor-pointer whitespace-nowrap">
                   Show Holidays
                 </Label>
               </div>
