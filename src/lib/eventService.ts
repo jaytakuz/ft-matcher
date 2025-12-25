@@ -13,6 +13,7 @@ export async function createEvent(eventData: Omit<EventData, 'availabilities'>):
       end_time: eventData.endTime,
       duration: eventData.duration || null,
       slot_length: eventData.slotLength || 30,
+      date_only: eventData.dateOnly || false,
     });
 
     if (error) throw error;
@@ -36,7 +37,7 @@ export async function getEvent(id: string): Promise<{ data: EventData | null; er
     // Fetch event - explicitly select only needed fields, excluding host_email for privacy
     const { data: eventRow, error: eventError } = await supabase
       .from("events")
-      .select("id, name, host_name, dates, start_time, end_time, duration, slot_length, created_at")
+      .select("id, name, host_name, dates, start_time, end_time, duration, slot_length, date_only, created_at")
       .eq("id", id)
       .maybeSingle();
 
@@ -78,6 +79,7 @@ export async function getEvent(id: string): Promise<{ data: EventData | null; er
       endTime: eventRow.end_time,
       duration: eventRow.duration || undefined,
       slotLength: eventRow.slot_length || 30,
+      dateOnly: eventRow.date_only || false,
       availabilities,
       createdAt: eventRow.created_at,
     };

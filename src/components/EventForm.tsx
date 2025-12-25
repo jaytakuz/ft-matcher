@@ -5,6 +5,7 @@ import { CalendarDays, Clock, User, Sparkles, Loader2, Timer } from 'lucide-reac
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { DraggableCalendar } from '@/components/DraggableCalendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -27,6 +28,7 @@ export const EventForm = () => {
   const [duration, setDuration] = useState('');
   const [slotLength, setSlotLength] = useState('30');
   const [isLoading, setIsLoading] = useState(false);
+  const [dateOnly, setDateOnly] = useState(false);
 
   const handleCreateEvent = async () => {
     if (!eventName || !hostName || selectedDates.length === 0) return;
@@ -38,10 +40,11 @@ export const EventForm = () => {
       name: eventName,
       hostName,
       dates: selectedDates.map(d => d.toISOString()),
-      startTime,
-      endTime,
-      duration: duration && duration !== 'none' ? parseInt(duration) : undefined,
-      slotLength: parseInt(slotLength),
+      startTime: dateOnly ? '00:00' : startTime,
+      endTime: dateOnly ? '23:59' : endTime,
+      duration: dateOnly ? undefined : (duration && duration !== 'none' ? parseInt(duration) : undefined),
+      slotLength: dateOnly ? 1440 : parseInt(slotLength), // Full day = 1440 minutes
+      dateOnly,
       createdAt: new Date().toISOString(),
     };
 
@@ -140,79 +143,105 @@ export const EventForm = () => {
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">Start Time</Label>
-          <Select value={startTime} onValueChange={setStartTime}>
-            <SelectTrigger>
-              <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-              <SelectValue placeholder="Select start time" />
-            </SelectTrigger>
-            <SelectContent className="max-h-60">
-              {timeOptions.map((time) => (
-                <SelectItem key={time} value={time}>
-                  {formatTimeSlot(time)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      {/* Event Type Toggle */}
+      <div className="flex items-center justify-between p-4 rounded-lg border border-border bg-muted/30">
+        <div className="space-y-0.5">
+          <Label className="text-sm font-medium">Event Type</Label>
+          <p className="text-xs text-muted-foreground">
+            {dateOnly ? 'Select available dates only' : 'Select available dates and times'}
+          </p>
         </div>
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">End Time</Label>
-          <Select value={endTime} onValueChange={setEndTime}>
-            <SelectTrigger>
-              <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-              <SelectValue placeholder="Select end time" />
-            </SelectTrigger>
-            <SelectContent className="max-h-60">
-              {timeOptions.map((time) => (
-                <SelectItem key={time} value={time} disabled={time <= startTime}>
-                  {formatTimeSlot(time)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="flex items-center gap-2">
+          <span className={cn("text-xs", !dateOnly && "text-primary font-medium")}>
+            Dates & Times
+          </span>
+          <Switch
+            checked={dateOnly}
+            onCheckedChange={setDateOnly}
+          />
+          <span className={cn("text-xs", dateOnly && "text-primary font-medium")}>
+            Dates Only
+          </span>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="slotLength" className="text-sm font-medium">
-            Slot Length
-          </Label>
-          <Select value={slotLength} onValueChange={setSlotLength}>
-            <SelectTrigger>
-              <Timer className="mr-2 h-4 w-4 text-muted-foreground" />
-              <SelectValue placeholder="Select slot length" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="15">15 minutes</SelectItem>
-              <SelectItem value="30">30 minutes</SelectItem>
-              <SelectItem value="60">1 hour</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="duration" className="text-sm font-medium">
-            Event Duration <span className="text-muted-foreground">(optional)</span>
-          </Label>
-          <Select value={duration} onValueChange={setDuration}>
-            <SelectTrigger>
-              <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-              <SelectValue placeholder="Select duration" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">No preference</SelectItem>
-              <SelectItem value="30">30 minutes</SelectItem>
-              <SelectItem value="60">1 hour</SelectItem>
-              <SelectItem value="90">1.5 hours</SelectItem>
-              <SelectItem value="120">2 hours</SelectItem>
-              <SelectItem value="180">3 hours</SelectItem>
-              <SelectItem value="240">4 hours</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      {!dateOnly && (
+        <>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Start Time</Label>
+              <Select value={startTime} onValueChange={setStartTime}>
+                <SelectTrigger>
+                  <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
+                  <SelectValue placeholder="Select start time" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60">
+                  {timeOptions.map((time) => (
+                    <SelectItem key={time} value={time}>
+                      {formatTimeSlot(time)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">End Time</Label>
+              <Select value={endTime} onValueChange={setEndTime}>
+                <SelectTrigger>
+                  <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
+                  <SelectValue placeholder="Select end time" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60">
+                  {timeOptions.map((time) => (
+                    <SelectItem key={time} value={time} disabled={time <= startTime}>
+                      {formatTimeSlot(time)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="slotLength" className="text-sm font-medium">
+                Slot Length
+              </Label>
+              <Select value={slotLength} onValueChange={setSlotLength}>
+                <SelectTrigger>
+                  <Timer className="mr-2 h-4 w-4 text-muted-foreground" />
+                  <SelectValue placeholder="Select slot length" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="15">15 minutes</SelectItem>
+                  <SelectItem value="30">30 minutes</SelectItem>
+                  <SelectItem value="60">1 hour</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="duration" className="text-sm font-medium">
+                Event Duration <span className="text-muted-foreground">(optional)</span>
+              </Label>
+              <Select value={duration} onValueChange={setDuration}>
+                <SelectTrigger>
+                  <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
+                  <SelectValue placeholder="Select duration" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No preference</SelectItem>
+                  <SelectItem value="30">30 minutes</SelectItem>
+                  <SelectItem value="60">1 hour</SelectItem>
+                  <SelectItem value="90">1.5 hours</SelectItem>
+                  <SelectItem value="120">2 hours</SelectItem>
+                  <SelectItem value="180">3 hours</SelectItem>
+                  <SelectItem value="240">4 hours</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </>
+      )}
 
       <Button
         onClick={handleCreateEvent}
