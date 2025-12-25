@@ -16,6 +16,7 @@ interface AvailabilityGridProps {
   onSlotsChange: (slots: TimeSlot[]) => void;
   showOthersAvailability?: boolean;
   overlapFilter?: { min: number | null; max: number | null };
+  timeSlotFilter?: { date: string; startTime: string; endTime: string } | null;
 }
 
 const DAYS_PER_PAGE = 7;
@@ -28,7 +29,8 @@ export const AvailabilityGrid = ({
   selectedSlots,
   onSlotsChange,
   showOthersAvailability = true,
-  overlapFilter
+  overlapFilter,
+  timeSlotFilter
 }: AvailabilityGridProps) => {
   const gridRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -70,8 +72,23 @@ export const AvailabilityGrid = ({
     return count >= min && count <= max;
   };
 
-  const getHeatmapColor = (count: number): string => {
+  const isSlotInTimeRange = (dateStr: string, time: string): boolean => {
+    if (!timeSlotFilter) return true;
+    
+    // Check if date matches
+    if (dateStr !== timeSlotFilter.date) return false;
+    
+    // Check if time is within the range
+    return time >= timeSlotFilter.startTime && time < timeSlotFilter.endTime;
+  };
+
+  const getHeatmapColor = (count: number, dateStr: string, time: string): string => {
     if (!showOthersAvailability) return 'bg-available-0';
+    
+    // Check if slot is outside the time slot filter range
+    if (!isSlotInTimeRange(dateStr, time)) {
+      return 'bg-muted/20'; // Dimmed/hidden appearance
+    }
     
     // Check if slot is outside the overlap filter range
     if (!isSlotInOverlapRange(count)) {
@@ -189,7 +206,7 @@ export const AvailabilityGrid = ({
         <div className="sticky left-0 z-10 bg-card border-r border-border">
           <div className="h-16 border-b border-border" />
           {timeSlots.map(time => (
-            <div key={time} className="h-8 px-2 text-xs text-muted-foreground border-b border-border/50 min-w-[60px] flex items-start justify-end">
+            <div key={time} className="h-8 px-2 text-xs text-muted-foreground border-b border-border min-w-[60px] flex items-start justify-end">
               {formatTimeSlot(time)}
             </div>
           ))}
@@ -218,13 +235,13 @@ export const AvailabilityGrid = ({
                   const count = getAvailabilityCount(dateStr, time);
                   const isSelected = isSlotSelected(dateStr, time);
                   const participants = getAvailableParticipants(dateStr, time);
-                  const colorClass = isEditMode && isSelected ? 'bg-primary' : getHeatmapColor(count);
+                  const colorClass = isEditMode && isSelected ? 'bg-primary' : getHeatmapColor(count, dateStr, time);
                   
                   const slotContent = (
                     <div
                       data-slot={`${dateStr}|${time}`}
                       className={cn(
-                        "h-8 border-b border-r border-border/50 transition-colors",
+                        "h-8 border-b border-r border-border transition-colors",
                         colorClass,
                         isEditMode && "cursor-pointer hover:opacity-80",
                         isEditMode && isSelected && "ring-1 ring-primary-foreground/50 ring-inset"

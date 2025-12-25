@@ -94,7 +94,7 @@ export const TopRecommendation = ({ event }: TopRecommendationProps) => {
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-sm font-medium text-primary">Best Match Found!</span>
+            <span className="text-sm font-medium text-primary">Top Pick!</span>
             <span className="flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
               <Users className="h-3 w-3" />
               {topRecommendation.participants.length} available

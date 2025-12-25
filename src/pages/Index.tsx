@@ -33,12 +33,12 @@ const Index = () => {
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
               Stop the endless back-and-forth. Create an event, share the link, and let everyone mark their availability. We'll find the overlap.
             </p>
-            <Link to="/create">
-              <Button size="lg" className="h-12 px-8">
-                <Plus className="mr-2 h-5 w-5" />
-                Create New Event
-              </Button>
-            </Link>
+          </div>
+
+          {/* Join existing event */}
+          <div className="bg-secondary/30 border border-border/50 rounded-xl p-6 mb-12">
+            <h2 className="text-lg font-medium mb-3">Join an existing event</h2>
+            <EventSearch />
           </div>
 
           {/* Features */}
@@ -60,11 +60,6 @@ const Index = () => {
             />
           </div>
 
-          {/* Join existing event */}
-          <div className="bg-secondary/30 border border-border/50 rounded-xl p-6">
-            <h2 className="text-lg font-medium mb-3">Join an existing event</h2>
-            <EventSearch />
-          </div>
         </div>
       </main>
 

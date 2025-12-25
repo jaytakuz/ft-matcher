@@ -44,8 +44,8 @@ const EventPage = () => {
   const [copied, setCopied] = useState(false);
   const [showOthersAvailability, setShowOthersAvailability] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [filterParticipant, setFilterParticipant] = useState<string | null>(null);
   const [overlapFilter, setOverlapFilter] = useState<{ min: number | null; max: number | null }>({ min: null, max: null });
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<{ date: string; startTime: string; endTime: string } | null>(null);
 
   const loadEvent = useCallback(async () => {
     if (!id) return;
@@ -129,29 +129,22 @@ const EventPage = () => {
     setCurrentUserEmail(undefined);
     // Show others' availability again after canceling
     setShowOthersAvailability(true);
-    setFilterParticipant(null);
-  };
-
-  const handleParticipantClick = (participantName: string) => {
-    // Toggle filter: if same name clicked, clear filter
-    if (filterParticipant === participantName) {
-      setFilterParticipant(null);
-    } else {
-      setFilterParticipant(participantName);
-      // Scroll to top of grid
-      gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
   };
 
   const handleOverlapFilterChange = (min: number | null, max: number | null) => {
     setOverlapFilter({ min, max });
   };
 
-  // Create filtered event data when filtering by participant
-  const filteredEvent = filterParticipant && event ? {
-    ...event,
-    availabilities: event.availabilities.filter(a => a.participantName === filterParticipant)
-  } : event;
+  const handleSelectTimeSlot = (slot: { date: string; startTime: string; endTime: string }) => {
+    // Toggle: if same slot is clicked, clear it
+    if (selectedTimeSlot && selectedTimeSlot.date === slot.date && selectedTimeSlot.startTime === slot.startTime) {
+      setSelectedTimeSlot(null);
+    } else {
+      setSelectedTimeSlot(slot);
+      // Scroll to top of grid
+      gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   if (loading) {
     return (
@@ -190,9 +183,9 @@ const EventPage = () => {
             <CalendarCheck className="h-6 w-6 text-primary" />
             <span className="font-semibold text-lg">Freetime Matcher</span>
           </Link>
-          <Button variant="outline" size="sm" onClick={handleCopyLink}>
+          <Button variant="secondary" size="sm" onClick={handleCopyLink}>
             {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
-            {copied ? 'Copied!' : 'Copy Link'}
+            {copied ? 'Copied!' : 'Share'}
           </Button>
         </div>
       </header>
@@ -258,7 +251,7 @@ const EventPage = () => {
                     className="gap-2"
                   >
                     <Pencil className="h-4 w-4" />
-                    Edit
+                    Add
                   </Button>
                 )}
                 {showOthersAvailability ? (
@@ -276,14 +269,14 @@ const EventPage = () => {
                 />
               </div>
               <div className="flex items-center gap-3">
-                {filterParticipant && (
+                {selectedTimeSlot && (
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => setFilterParticipant(null)}
+                    onClick={() => setSelectedTimeSlot(null)}
                     className="text-xs"
                   >
-                    Clear filter: {filterParticipant}
+                    Clear time filter
                   </Button>
                 )}
                 <Legend mode="heatmap" />
@@ -300,7 +293,7 @@ const EventPage = () => {
 
             {/* Grid */}
             <AvailabilityGrid
-              event={filteredEvent!}
+              event={event}
               currentUser={currentUser ?? undefined}
               isEditMode={isEditMode}
               visualizationMode="heatmap"
@@ -308,6 +301,7 @@ const EventPage = () => {
               onSlotsChange={setSelectedSlots}
               showOthersAvailability={showOthersAvailability}
               overlapFilter={overlapFilter}
+              timeSlotFilter={selectedTimeSlot}
             />
 
             {/* Action Buttons */}
@@ -351,33 +345,8 @@ const EventPage = () => {
             <AddToCalendarButton event={event} />
 
             {/* Best Times List */}
-            <RecommendedTimes event={event} />
+            <RecommendedTimes event={event} onSelectTime={handleSelectTimeSlot} />
 
-            {/* Participants List */}
-            {event.availabilities.length > 0 && (
-              <div className="bg-card border border-border rounded-lg p-4">
-                <h3 className="font-medium mb-3 flex items-center gap-2">
-                  <Users className="h-4 w-4 text-primary" />
-                  Participants
-                </h3>
-                <div className="space-y-2">
-                  {event.availabilities.map((a) => (
-                    <button
-                      key={a.participantId}
-                      onClick={() => handleParticipantClick(a.participantName)}
-                      className={`w-full flex items-center justify-between text-sm p-2 rounded-md transition-colors hover:bg-muted/50 ${
-                        filterParticipant === a.participantName ? 'bg-primary/10 text-primary' : ''
-                      }`}
-                    >
-                      <span>{a.participantName}</span>
-                      <span className="text-muted-foreground">
-                        {a.slots.length} slot{a.slots.length !== 1 ? 's' : ''}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
           </aside>
         </div>
       </main>
