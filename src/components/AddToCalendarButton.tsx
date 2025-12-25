@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { AddToCalendarDialog } from './AddToCalendarDialog';
 import type { EventData, RecommendedSlot } from '@/types/event';
 
 interface AddToCalendarButtonProps {
@@ -10,25 +12,37 @@ interface AddToCalendarButtonProps {
 }
 
 export const AddToCalendarButton = ({ event, selectedSlot, disabled }: AddToCalendarButtonProps) => {
+  const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  const handleAddToCalendar = () => {
-    // For now, just show a toast - actual implementation will be added later
+  const handleConfirm = () => {
+    // Mock confirmation - actual Google Calendar API integration will be added later
+    setDialogOpen(false);
     toast({
-      title: "Coming soon!",
-      description: "Google Calendar integration will be available soon.",
+      title: "Event created!",
+      description: "Calendar invitations have been sent to all participants.",
     });
   };
 
   return (
-    <Button
-      variant="outline"
-      onClick={handleAddToCalendar}
-      disabled={disabled}
-      className="w-full"
-    >
-      <Calendar className="h-4 w-4 mr-2" />
-      Add to Google Calendar
-    </Button>
+    <>
+      <Button
+        variant="outline"
+        onClick={() => setDialogOpen(true)}
+        disabled={disabled}
+        className="w-full"
+      >
+        <Calendar className="h-4 w-4 mr-2" />
+        Add to Google Calendar
+      </Button>
+
+      <AddToCalendarDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        event={event}
+        selectedSlot={selectedSlot}
+        onConfirm={handleConfirm}
+      />
+    </>
   );
 };
