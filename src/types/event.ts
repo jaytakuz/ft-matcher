@@ -19,6 +19,7 @@ export interface EventData {
   endTime: string; // HH:mm
   duration?: number; // event duration in minutes
   slotLength?: number; // slot length in minutes (default 30)
+  dateOnly?: boolean; // true = dates only mode, false = dates and times mode
   availabilities: Availability[];
   createdAt: string;
 }

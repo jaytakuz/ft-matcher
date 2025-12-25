@@ -47,6 +47,7 @@ const EventPage = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [overlapFilter, setOverlapFilter] = useState<{ min: number | null; max: number | null }>({ min: null, max: null });
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<{ date: string; startTime: string; endTime: string } | null>(null);
+  const [showHolidays, setShowHolidays] = useState(false);
 
   // Calculate the first best time recommendation
   const firstRecommendation = useMemo((): RecommendedSlot | undefined => {
@@ -376,6 +377,20 @@ const EventPage = () => {
               </div>
             </div>
 
+            {/* Holiday Toggle & Overlap Slider */}
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="show-holidays"
+                  checked={showHolidays}
+                  onCheckedChange={setShowHolidays}
+                />
+                <Label htmlFor="show-holidays" className="text-sm cursor-pointer">
+                  แสดงวันหยุด
+                </Label>
+              </div>
+            </div>
+
             {/* Overlap Slider Filter */}
             {!isEditMode && event.availabilities.length > 0 && (
               <OverlapSlider 
@@ -395,6 +410,7 @@ const EventPage = () => {
               showOthersAvailability={showOthersAvailability}
               overlapFilter={overlapFilter}
               timeSlotFilter={selectedTimeSlot}
+              showHolidays={showHolidays}
             />
 
             {/* Action Buttons */}

@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { generateTimeSlots, formatTimeSlot, formatDateHeader } from '@/lib/dateUtils';
+import { getThaiHoliday, formatDateToYMD } from '@/lib/thaiHolidays';
 import type { EventData, TimeSlot, VisualizationMode, Availability } from '@/types/event';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ interface AvailabilityGridProps {
   showOthersAvailability?: boolean;
   overlapFilter?: { min: number | null; max: number | null };
   timeSlotFilter?: { date: string; startTime: string; endTime: string } | null;
+  showHolidays?: boolean;
 }
 
 const DAYS_PER_PAGE = 7;
@@ -30,7 +32,8 @@ export const AvailabilityGrid = ({
   onSlotsChange,
   showOthersAvailability = true,
   overlapFilter,
-  timeSlotFilter
+  timeSlotFilter,
+  showHolidays = false
 }: AvailabilityGridProps) => {
   const gridRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -39,7 +42,8 @@ export const AvailabilityGrid = ({
   const [currentPage, setCurrentPage] = useState(0);
   
   const slotLength = event.slotLength || 30;
-  const timeSlots = generateTimeSlots(event.startTime, event.endTime, slotLength);
+  const isDateOnly = event.dateOnly || false;
+  const timeSlots = isDateOnly ? ['00:00'] : generateTimeSlots(event.startTime, event.endTime, slotLength);
   const allDates = event.dates.map(d => new Date(d)).sort((a, b) => a.getTime() - b.getTime());
   const totalPages = Math.ceil(allDates.length / DAYS_PER_PAGE);
   const startIdx = currentPage * DAYS_PER_PAGE;
@@ -218,32 +222,62 @@ export const AvailabilityGrid = ({
       )}
 
       <div ref={gridRef} className="flex overflow-x-auto" style={{ touchAction: isEditMode ? 'pan-x' : 'auto' }} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
-        {/* Time column - sticky */}
-        <div className="sticky left-0 z-10 bg-card border-r border-border">
-          <div className="h-16 border-b border-border" />
-          {timeSlots.map(time => (
-            <div key={time} className="h-8 px-2 text-xs text-muted-foreground border-b border-border min-w-[60px] flex items-start justify-end">
-              {formatTimeSlot(time)}
-            </div>
-          ))}
-        </div>
+        {/* Time column - sticky (hidden for date-only mode) */}
+        {!isDateOnly && (
+          <div className="sticky left-0 z-10 bg-card border-r border-border">
+            <div className="h-16 border-b border-border" />
+            {timeSlots.map(time => (
+              <div key={time} className="h-8 px-2 text-xs text-muted-foreground border-b border-border min-w-[60px] flex items-start justify-end">
+                {formatTimeSlot(time)}
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Date columns */}
         <div className="flex flex-1">
           {dates.map(date => {
             const dateStr = date.toISOString();
             const header = formatDateHeader(dateStr);
+            const holiday = showHolidays ? getThaiHoliday(formatDateToYMD(date)) : undefined;
+            
             return (
               <div key={dateStr} className="flex-1 min-w-[48px] sm:min-w-[56px]">
                 {/* Date header */}
-                <div className="h-16 flex flex-col items-center justify-center border-b border-border px-1">
-                  <span className="text-[10px] text-muted-foreground uppercase">
+                <div className={cn(
+                  "flex flex-col items-center justify-center border-b border-border px-1",
+                  isDateOnly ? "h-20" : "h-16",
+                  holiday && "bg-destructive/10"
+                )}>
+                  <span className={cn(
+                    "text-[10px] uppercase",
+                    holiday ? "text-destructive" : "text-muted-foreground"
+                  )}>
                     {header.day}
                   </span>
-                  <span className="text-lg font-semibold">{header.date}</span>
-                  <span className="text-[10px] text-muted-foreground">
+                  <span className={cn(
+                    "text-lg font-semibold",
+                    holiday && "text-destructive"
+                  )}>{header.date}</span>
+                  <span className={cn(
+                    "text-[10px]",
+                    holiday ? "text-destructive" : "text-muted-foreground"
+                  )}>
                     {header.month}
                   </span>
+                  {holiday && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="text-[8px] text-destructive font-medium truncate max-w-full px-0.5">
+                          🎉
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="font-medium">{holiday.name}</p>
+                        <p className="text-xs text-muted-foreground">{holiday.nameEn}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
                 </div>
 
                 {/* Time slots */}
@@ -258,7 +292,8 @@ export const AvailabilityGrid = ({
                     <div
                       data-slot={`${dateStr}|${time}`}
                       className={cn(
-                        "h-8 border-b border-r border-border transition-colors",
+                        "border-b border-r border-border transition-colors",
+                        isDateOnly ? "h-16" : "h-8",
                         colorClass,
                         isEditMode && "cursor-pointer hover:opacity-80",
                         isEditMode && isSelected && "ring-1 ring-primary-foreground/50 ring-inset"

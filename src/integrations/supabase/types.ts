@@ -49,6 +49,7 @@ export type Database = {
       events: {
         Row: {
           created_at: string
+          date_only: boolean
           dates: string[]
           duration: number | null
           end_time: string
@@ -61,6 +62,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          date_only?: boolean
           dates: string[]
           duration?: number | null
           end_time: string
@@ -73,6 +75,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          date_only?: boolean
           dates?: string[]
           duration?: number | null
           end_time?: string
