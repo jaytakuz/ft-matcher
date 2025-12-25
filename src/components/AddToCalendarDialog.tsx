@@ -126,15 +126,15 @@ export const AddToCalendarDialog = ({
               <Clock className="h-4 w-4 text-primary" />
               Date
             </Label>
+            {date && (
+              <p className="text-xs text-primary font-medium">{formatDateDisplay()}</p>
+            )}
             <Input
               id="event-date"
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
             />
-            {date && (
-              <p className="text-xs text-muted-foreground">{formatDateDisplay()}</p>
-            )}
           </div>
 
           {/* Time Range */}
