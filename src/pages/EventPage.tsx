@@ -27,8 +27,9 @@ import { Legend } from '@/components/Legend';
 import { EventCodeDisplay } from '@/components/EventCodeDisplay';
 import { AddToCalendarButton } from '@/components/AddToCalendarButton';
 import { OverlapSlider } from '@/components/OverlapSlider';
+import { ParticipantsList } from '@/components/ParticipantsList';
 import { getEvent, saveAvailability } from '@/lib/eventService';
-import type { EventData, TimeSlot, Availability } from '@/types/event';
+import type { EventData, TimeSlot, Availability, RecommendedSlot } from '@/types/event';
 
 const EventPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -146,6 +147,10 @@ const EventPage = () => {
     }
   };
 
+  const handleTopPickSelect = (slot: RecommendedSlot) => {
+    handleSelectTimeSlot({ date: slot.date, startTime: slot.startTime, endTime: slot.endTime });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -234,7 +239,7 @@ const EventPage = () => {
 
         {/* Top Recommendation - only shows when 2+ participants have overlapping times */}
         <div className="mb-6">
-          <TopRecommendation event={event} />
+          <TopRecommendation event={event} onSelect={handleTopPickSelect} />
         </div>
 
         <div ref={gridRef} className="grid lg:grid-cols-[1fr_320px] gap-6">
@@ -347,6 +352,8 @@ const EventPage = () => {
             {/* Best Times List */}
             <RecommendedTimes event={event} onSelectTime={handleSelectTimeSlot} />
 
+            {/* Participants List */}
+            <ParticipantsList participants={event.availabilities.map(a => a.participantName)} />
           </aside>
         </div>
       </main>

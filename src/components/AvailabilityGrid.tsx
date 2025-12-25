@@ -61,6 +61,22 @@ export const AvailabilityGrid = ({
     return event.availabilities.filter(a => a.slots.some(s => s.date === date && s.time === time)).map(a => a.participantName);
   };
 
+  const getUnavailableParticipants = (date: string, time: string): string[] => {
+    if (!showOthersAvailability) return [];
+    const availableNames = new Set(
+      event.availabilities
+        .filter(a => a.slots.some(s => s.date === date && s.time === time))
+        .map(a => a.participantName)
+    );
+    return event.availabilities
+      .filter(a => !availableNames.has(a.participantName))
+      .map(a => a.participantName);
+  };
+
+  const truncateName = (name: string, maxLen: number = 5): string => {
+    return name.length > maxLen ? name.slice(0, maxLen) + '…' : name;
+  };
+
   const totalParticipants = event.availabilities.length || 1;
 
   const isSlotInOverlapRange = (count: number): boolean => {
@@ -235,6 +251,7 @@ export const AvailabilityGrid = ({
                   const count = getAvailabilityCount(dateStr, time);
                   const isSelected = isSlotSelected(dateStr, time);
                   const participants = getAvailableParticipants(dateStr, time);
+                  const unavailable = getUnavailableParticipants(dateStr, time);
                   const colorClass = isEditMode && isSelected ? 'bg-primary' : getHeatmapColor(count, dateStr, time);
                   
                   const slotContent = (
@@ -252,8 +269,11 @@ export const AvailabilityGrid = ({
                     />
                   );
 
-                  // Always show tooltip when there are participants (in view mode or when showOthersAvailability is on)
+                  // Show tooltip when there are participants
                   if (participants.length > 0) {
+                    const displayUnavailable = unavailable.slice(0, 5);
+                    const hasMoreUnavailable = unavailable.length > 5;
+                    
                     return (
                       <Tooltip key={getSlotKey(dateStr, time)}>
                         <TooltipTrigger asChild>
@@ -261,11 +281,14 @@ export const AvailabilityGrid = ({
                         </TooltipTrigger>
                         <TooltipContent side="top" className="max-w-[200px]">
                           <p className="font-medium text-sm mb-1">
-                            {participants.length} available
+                            {participants.length}/{totalParticipants} available
                           </p>
-                          <p className="text-xs text-muted-foreground">
-                            {participants.join(', ')}
-                          </p>
+                          {unavailable.length > 0 && (
+                            <p className="text-xs text-destructive">
+                              Not free: {displayUnavailable.map(n => truncateName(n)).join(', ')}
+                              {hasMoreUnavailable && ` +${unavailable.length - 5}`}
+                            </p>
+                          )}
                         </TooltipContent>
                       </Tooltip>
                     );

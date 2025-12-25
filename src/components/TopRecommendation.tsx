@@ -5,9 +5,10 @@ import type { EventData, RecommendedSlot } from '@/types/event';
 
 interface TopRecommendationProps {
   event: EventData;
+  onSelect?: (slot: RecommendedSlot) => void;
 }
 
-export const TopRecommendation = ({ event }: TopRecommendationProps) => {
+export const TopRecommendation = ({ event, onSelect }: TopRecommendationProps) => {
   const topRecommendation = useMemo(() => {
     if (event.availabilities.length < 2) return null;
 
@@ -86,8 +87,17 @@ export const TopRecommendation = ({ event }: TopRecommendationProps) => {
     return null;
   }
 
+  const handleClick = () => {
+    if (onSelect) {
+      onSelect(topRecommendation);
+    }
+  };
+
   return (
-    <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-lg p-4">
+    <div 
+      className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-lg p-4 cursor-pointer hover:border-primary/40 transition-colors"
+      onClick={handleClick}
+    >
       <div className="flex items-start gap-3">
         <div className="p-2 bg-primary/10 rounded-full">
           <Sparkles className="h-5 w-5 text-primary" />
