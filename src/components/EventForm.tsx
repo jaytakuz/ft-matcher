@@ -29,6 +29,7 @@ export const EventForm = () => {
   const [slotLength, setSlotLength] = useState('30');
   const [isLoading, setIsLoading] = useState(false);
   const [dateOnly, setDateOnly] = useState(false);
+  const [requireEmail, setRequireEmail] = useState(false);
   const handleCreateEvent = async () => {
     if (!eventName || !hostName || selectedDates.length === 0) return;
     setIsLoading(true);
@@ -43,6 +44,7 @@ export const EventForm = () => {
       slotLength: dateOnly ? 1440 : parseInt(slotLength),
       // Full day = 1440 minutes
       dateOnly,
+      requireEmail,
       createdAt: new Date().toISOString()
     };
     const {
@@ -121,6 +123,17 @@ export const EventForm = () => {
             Dates Only
           </span>
         </div>
+      </div>
+
+      {/* Require Email Toggle */}
+      <div className="flex items-center justify-between p-4 rounded-lg border border-border bg-muted/30">
+        <div className="space-y-0.5">
+          <Label className="text-sm font-medium">Require Participant Email</Label>
+          <p className="text-xs text-muted-foreground">
+            Participants must provide email for calendar invites
+          </p>
+        </div>
+        <Switch checked={requireEmail} onCheckedChange={setRequireEmail} />
       </div>
 
       {!dateOnly && <>

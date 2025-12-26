@@ -57,6 +57,7 @@ export type Database = {
           host_name: string
           id: string
           name: string
+          require_email: boolean
           slot_length: number | null
           start_time: string
         }
@@ -70,6 +71,7 @@ export type Database = {
           host_name: string
           id: string
           name: string
+          require_email?: boolean
           slot_length?: number | null
           start_time: string
         }
@@ -83,6 +85,7 @@ export type Database = {
           host_name?: string
           id?: string
           name?: string
+          require_email?: boolean
           slot_length?: number | null
           start_time?: string
         }
