@@ -205,7 +205,7 @@ export const OverlapSlider = ({ event, onFilterChange }: OverlapSliderProps) => 
           {/* Info text */}
           {actualMaxOverlap < maxParticipants && (
             <p className="text-xs text-muted-foreground bg-muted/50 rounded px-2 py-1">
-              💡 Max overlap is {actualMaxOverlap} (no time slot has all {maxParticipants} available)
+              💡Filtering {rangeValue[0]} to {rangeValue[1]} people are available
             </p>
           )}
 
