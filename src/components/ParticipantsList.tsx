@@ -36,11 +36,17 @@ export const ParticipantsList = ({ participants }: ParticipantsListProps) => {
       </CardHeader>
       <CardContent className="space-y-2">
         <ul className="space-y-1">
-          {currentParticipants.map((name, idx) => (
-            <li key={startIdx + idx} className="text-sm py-1 px-2 rounded bg-secondary/50">
-              {name}
-            </li>
-          ))}
+          {Array.from({ length: ITEMS_PER_PAGE }).map((_, idx) => {
+            const name = currentParticipants[idx];
+            return (
+              <li 
+                key={startIdx + idx} 
+                className={`text-sm py-1 px-2 rounded h-7 ${name ? 'bg-secondary/50' : 'bg-transparent'}`}
+              >
+                {name || '\u00A0'}
+              </li>
+            );
+          })}
         </ul>
         
         {totalPages > 1 && (
