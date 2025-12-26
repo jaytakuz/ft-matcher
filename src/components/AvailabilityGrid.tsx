@@ -6,6 +6,7 @@ import { generateTimeSlots, formatTimeSlot, formatDateHeader } from '@/lib/dateU
 import { getThaiHoliday, formatDateToYMD } from '@/lib/thaiHolidays';
 import type { EventData, TimeSlot, VisualizationMode, Availability } from '@/types/event';
 import { SlotTooltip } from '@/components/SlotTooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 
 interface AvailabilityGridProps {
@@ -247,33 +248,42 @@ export const AvailabilityGrid = ({
             return (
               <div key={dateStr} className="flex-1 min-w-0">
                 {/* Date header */}
-                <div className={cn(
-                  "flex flex-col items-center justify-center border-b border-border px-1",
-                  isDateOnly ? "h-24" : "h-20",
-                  holiday && "bg-destructive/10"
-                )}>
-                  {holiday && (
-                    <span className="text-[8px] leading-tight text-destructive font-medium text-center truncate max-w-full px-0.5 mb-0.5">
-                      {holiday.nameEn}
-                    </span>
-                  )}
-                  <span className={cn(
-                    "text-[10px] uppercase",
-                    holiday ? "text-destructive" : "text-muted-foreground"
-                  )}>
-                    {header.day}
-                  </span>
-                  <span className={cn(
-                    "text-lg font-semibold",
-                    holiday && "text-destructive"
-                  )}>{header.date}</span>
-                  <span className={cn(
-                    "text-[10px]",
-                    holiday ? "text-destructive" : "text-muted-foreground"
-                  )}>
-                    {header.month}
-                  </span>
-                </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className={cn(
+                        "flex flex-col items-center justify-center border-b border-border px-1 cursor-default",
+                        isDateOnly ? "h-24" : "h-20",
+                        holiday && "bg-destructive/10"
+                      )}>
+                        {holiday && (
+                          <span className="text-destructive text-sm">🎉</span>
+                        )}
+                        <span className={cn(
+                          "text-[10px] uppercase",
+                          holiday ? "text-destructive" : "text-muted-foreground"
+                        )}>
+                          {header.day}
+                        </span>
+                        <span className={cn(
+                          "text-lg font-semibold",
+                          holiday && "text-destructive"
+                        )}>{header.date}</span>
+                        <span className={cn(
+                          "text-[10px]",
+                          holiday ? "text-destructive" : "text-muted-foreground"
+                        )}>
+                          {header.month}
+                        </span>
+                      </div>
+                    </TooltipTrigger>
+                    {holiday && (
+                      <TooltipContent>
+                        <p className="font-medium">{holiday.nameEn}</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
 
                 {/* Time slots */}
                 {timeSlots.map(time => {
