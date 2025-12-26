@@ -466,6 +466,7 @@ const EventPage = () => {
         open={showParticipantForm}
         onClose={() => setShowParticipantForm(false)}
         onSubmit={handleJoin}
+        requireEmail={event.requireEmail}
       />
     </div>
   );
