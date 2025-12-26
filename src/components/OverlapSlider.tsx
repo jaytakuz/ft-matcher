@@ -146,7 +146,7 @@ export const OverlapSlider = ({ event, onFilterChange }: OverlapSliderProps) => 
               <div className="text-lg font-semibold text-foreground">{minOverlapValue}</div>
             </div>
             <div className="bg-background rounded-md p-2">
-              <div className="text-xs text-muted-foreground">Max Showing</div>
+              <div className="text-xs text-muted-foreground">Max Overlap</div>
               <div className="text-lg font-semibold text-foreground">{maxOverlapValue}</div>
             </div>
           </div>
