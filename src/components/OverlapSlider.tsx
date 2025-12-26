@@ -166,7 +166,7 @@ export const OverlapSlider = ({ event, onFilterChange }: OverlapSliderProps) => 
           {/* Available Values Display */}
           <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
             <span>0 people</span>
-            <span>{maxParticipants} people</span>
+            <span>{availableOverlapValues[availableOverlapValues.length - 1]} people</span>
           </div>
 
 
