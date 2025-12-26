@@ -169,24 +169,6 @@ export const OverlapSlider = ({ event, onFilterChange }: OverlapSliderProps) => 
             <span>{maxParticipants} people</span>
           </div>
 
-          {/* Active Values Pills */}
-          {availableOverlapValues.length > 2 && (
-            <div className="flex flex-wrap gap-1.5">
-              {availableOverlapValues.map((val, idx) => (
-                <span
-                  key={val}
-                  className={cn(
-                    "text-xs px-2 py-0.5 rounded-full transition-colors",
-                    idx >= rangeValue[0] && idx <= rangeValue[1]
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground"
-                  )}
-                >
-                  {val}
-                </span>
-              ))}
-            </div>
-          )}
 
           <p className="text-xs text-muted-foreground">
             Showing slots where {minOverlapValue === maxOverlapValue 
