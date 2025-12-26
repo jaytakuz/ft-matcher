@@ -119,11 +119,16 @@ export const OverlapSlider = ({ event, onFilterChange }: OverlapSliderProps) => 
       {/* Slider Panel */}
       {isOpen && (
         <div className="bg-muted/30 border border-border rounded-lg p-4 space-y-4 animate-fade-in">
-          {/* Header */}
+          {/* Header with summary */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm font-medium">
+            <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-primary" />
-              <span>Overlap Filter</span>
+              <span className="text-sm font-medium">
+                Overlap: {rangeValue[0]} - {rangeValue[1]} People
+              </span>
+              <span className="text-xs text-muted-foreground">
+                (max {actualMaxOverlap} of {maxParticipants})
+              </span>
             </div>
             <Button
               variant="ghost"
@@ -136,78 +141,23 @@ export const OverlapSlider = ({ event, onFilterChange }: OverlapSliderProps) => 
             </Button>
           </div>
 
-          {/* Stats Row */}
-          <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="bg-background rounded-md p-2">
-              <div className="text-xs text-muted-foreground">Total</div>
-              <div className="text-lg font-semibold text-primary">{maxParticipants}</div>
-            </div>
-            <div className="bg-background rounded-md p-2">
-              <div className="text-xs text-muted-foreground">Min Showing</div>
-              <div className="text-lg font-semibold text-foreground">{rangeValue[0]}</div>
-            </div>
-            <div className="bg-background rounded-md p-2">
-              <div className="text-xs text-muted-foreground">Max Overlap</div>
-              <div className="text-lg font-semibold text-foreground">{actualMaxOverlap}</div>
-            </div>
-          </div>
-
-          {/* Custom Range Slider with visual indicator */}
-          <div className="px-2 relative">
-            {/* Background track showing full range (0 to Total) */}
-            <div className="relative h-2 w-full rounded-full bg-secondary">
-              {/* Usable area indicator */}
-              <div 
-                className="absolute h-full rounded-full bg-secondary"
-                style={{ width: `${usablePercentage}%` }}
-              />
-              {/* Disabled/unavailable area */}
-              {actualMaxOverlap < maxParticipants && (
-                <div 
-                  className="absolute h-full rounded-r-full bg-muted-foreground/20"
-                  style={{ 
-                    left: `${usablePercentage}%`, 
-                    width: `${100 - usablePercentage}%` 
-                  }}
-                />
-              )}
-            </div>
+          {/* Dual-thumb Range Slider */}
+          <div className="px-1">
+            <Slider
+              value={rangeValue}
+              onValueChange={handleRangeChange}
+              min={0}
+              max={actualMaxOverlap}
+              step={1}
+              className="w-full"
+            />
             
-            {/* Actual slider - limited to actualMaxOverlap */}
-            <div className="absolute inset-0" style={{ width: `${usablePercentage}%` }}>
-              <Slider
-                value={rangeValue}
-                onValueChange={handleRangeChange}
-                min={0}
-                max={actualMaxOverlap}
-                step={1}
-                className="w-full"
-              />
+            {/* Scale markers */}
+            <div className="flex justify-between text-xs text-muted-foreground mt-1">
+              <span>0</span>
+              <span>{actualMaxOverlap}</span>
             </div>
           </div>
-
-          {/* Scale markers */}
-          <div className="relative text-xs text-muted-foreground px-1 h-5">
-            <span className="absolute left-0">0</span>
-            {actualMaxOverlap < maxParticipants && (
-              <span 
-                className="absolute text-primary font-medium -translate-x-1/2"
-                style={{ left: `${usablePercentage}%` }}
-              >
-                {actualMaxOverlap}
-              </span>
-            )}
-            <span className={`absolute right-0 ${actualMaxOverlap < maxParticipants ? "text-muted-foreground/50" : ""}`}>
-              {maxParticipants}
-            </span>
-          </div>
-
-          {/* Info text */}
-          {actualMaxOverlap < maxParticipants && (
-            <p className="text-xs text-muted-foreground bg-muted/50 rounded px-2 py-1">
-              💡Filtering {rangeValue[0]} to {rangeValue[1]} people are available
-            </p>
-          )}
 
         </div>
       )}
