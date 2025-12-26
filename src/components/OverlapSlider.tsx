@@ -187,17 +187,17 @@ export const OverlapSlider = ({ event, onFilterChange }: OverlapSliderProps) => 
           </div>
 
           {/* Scale markers */}
-          <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
-            <span>0</span>
+          <div className="relative text-xs text-muted-foreground px-1 h-5">
+            <span className="absolute left-0">0</span>
             {actualMaxOverlap < maxParticipants && (
               <span 
-                className="text-primary font-medium"
-                style={{ marginRight: `${100 - usablePercentage}%` }}
+                className="absolute text-primary font-medium -translate-x-1/2"
+                style={{ left: `${usablePercentage}%` }}
               >
                 {actualMaxOverlap}
               </span>
             )}
-            <span className={actualMaxOverlap < maxParticipants ? "text-muted-foreground/50" : ""}>
+            <span className={`absolute right-0 ${actualMaxOverlap < maxParticipants ? "text-muted-foreground/50" : ""}`}>
               {maxParticipants}
             </span>
           </div>
