@@ -14,18 +14,17 @@ export const OverlapSlider = ({ event, onFilterChange }: OverlapSliderProps) => 
   const [isOpen, setIsOpen] = useState(false);
 
   // Calculate unique overlap values that actually exist in the data
-  const { availableOverlapValues, maxParticipants } = useMemo(() => {
+  const { availableOverlapValues, maxParticipants, actualMaxOverlap } = useMemo(() => {
     const overlapCounts = new Map<string, number>();
     const totalParticipants = event.availabilities.length;
 
     if (totalParticipants === 0) {
-      return { availableOverlapValues: [0], maxParticipants: 0 };
+      return { availableOverlapValues: [0], maxParticipants: 0, actualMaxOverlap: 0 };
     }
 
     // Count how many participants are available for each slot
     event.dates.forEach(date => {
       const dateStr = new Date(date).toISOString();
-      // We need to check all time slots - use a reasonable range
       event.availabilities.forEach(avail => {
         avail.slots.forEach(slot => {
           if (slot.date === dateStr) {
@@ -51,42 +50,41 @@ export const OverlapSlider = ({ event, onFilterChange }: OverlapSliderProps) => 
       sortedValues.unshift(0);
     }
 
+    const maxOverlap = sortedValues.length > 0 ? sortedValues[sortedValues.length - 1] : 0;
+
     return {
       availableOverlapValues: sortedValues.length > 0 ? sortedValues : [0],
-      maxParticipants: totalParticipants
+      maxParticipants: totalParticipants,
+      actualMaxOverlap: maxOverlap
     };
   }, [event]);
 
-  // State for the range slider
-  const [rangeValue, setRangeValue] = useState<[number, number]>([0, availableOverlapValues.length - 1]);
-
-  // Map slider position to actual overlap value
-  const minOverlapValue = availableOverlapValues[rangeValue[0]] ?? 0;
-  const maxOverlapValue = availableOverlapValues[rangeValue[1]] ?? maxParticipants;
+  // State for the range slider - using actual overlap values (0 to actualMaxOverlap)
+  const [rangeValue, setRangeValue] = useState<[number, number]>([0, actualMaxOverlap]);
 
   const handleRangeChange = (value: number[]) => {
-    const newRange: [number, number] = [value[0], value[1]];
+    // Clamp values to actualMaxOverlap
+    const clampedMin = Math.min(value[0], actualMaxOverlap);
+    const clampedMax = Math.min(value[1], actualMaxOverlap);
+    
+    const newRange: [number, number] = [clampedMin, clampedMax];
     setRangeValue(newRange);
     
-    const minVal = availableOverlapValues[newRange[0]] ?? 0;
-    const maxVal = availableOverlapValues[newRange[1]] ?? maxParticipants;
-    
-    // If range covers everything, clear filter
-    if (newRange[0] === 0 && newRange[1] === availableOverlapValues.length - 1) {
+    // If range covers everything (0 to max), clear filter
+    if (newRange[0] === 0 && newRange[1] === actualMaxOverlap) {
       onFilterChange(null, null);
     } else {
-      onFilterChange(minVal, maxVal);
+      onFilterChange(newRange[0], newRange[1]);
     }
   };
 
   const handleReset = () => {
-    setRangeValue([0, availableOverlapValues.length - 1]);
+    setRangeValue([0, actualMaxOverlap]);
     onFilterChange(null, null);
   };
 
   const handleToggle = () => {
     if (isOpen) {
-      // When closing, reset the filter
       handleReset();
     }
     setIsOpen(!isOpen);
@@ -96,6 +94,9 @@ export const OverlapSlider = ({ event, onFilterChange }: OverlapSliderProps) => 
   if (maxParticipants === 0) {
     return null;
   }
+
+  // Calculate the percentage where the "usable" area ends
+  const usablePercentage = maxParticipants > 0 ? (actualMaxOverlap / maxParticipants) * 100 : 100;
 
   return (
     <div className="space-y-3 w-full sm:w-auto">
@@ -110,7 +111,7 @@ export const OverlapSlider = ({ event, onFilterChange }: OverlapSliderProps) => 
         Filter by Overlap
         {isOpen && (
           <span className="text-xs bg-primary/20 px-1.5 py-0.5 rounded">
-            {minOverlapValue}-{maxOverlapValue}
+            {rangeValue[0]}-{rangeValue[1]}
           </span>
         )}
       </Button>
@@ -143,37 +144,75 @@ export const OverlapSlider = ({ event, onFilterChange }: OverlapSliderProps) => 
             </div>
             <div className="bg-background rounded-md p-2">
               <div className="text-xs text-muted-foreground">Min Showing</div>
-              <div className="text-lg font-semibold text-foreground">{minOverlapValue}</div>
+              <div className="text-lg font-semibold text-foreground">{rangeValue[0]}</div>
             </div>
             <div className="bg-background rounded-md p-2">
               <div className="text-xs text-muted-foreground">Max Overlap</div>
-              <div className="text-lg font-semibold text-foreground">{maxOverlapValue}</div>
+              <div className="text-lg font-semibold text-foreground">{actualMaxOverlap}</div>
             </div>
           </div>
 
-          {/* Range Slider */}
-          <div className="px-2">
-            <Slider
-              value={rangeValue}
-              onValueChange={handleRangeChange}
-              min={0}
-              max={availableOverlapValues.length - 1}
-              step={1}
-              className="w-full"
-            />
+          {/* Custom Range Slider with visual indicator */}
+          <div className="px-2 relative">
+            {/* Background track showing full range (0 to Total) */}
+            <div className="relative h-2 w-full rounded-full bg-secondary">
+              {/* Usable area indicator */}
+              <div 
+                className="absolute h-full rounded-full bg-secondary"
+                style={{ width: `${usablePercentage}%` }}
+              />
+              {/* Disabled/unavailable area */}
+              {actualMaxOverlap < maxParticipants && (
+                <div 
+                  className="absolute h-full rounded-r-full bg-muted-foreground/20"
+                  style={{ 
+                    left: `${usablePercentage}%`, 
+                    width: `${100 - usablePercentage}%` 
+                  }}
+                />
+              )}
+            </div>
+            
+            {/* Actual slider - limited to actualMaxOverlap */}
+            <div className="absolute inset-0" style={{ width: `${usablePercentage}%` }}>
+              <Slider
+                value={rangeValue}
+                onValueChange={handleRangeChange}
+                min={0}
+                max={actualMaxOverlap}
+                step={1}
+                className="w-full"
+              />
+            </div>
           </div>
 
-          {/* Available Values Display */}
+          {/* Scale markers */}
           <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
-            <span>0 people</span>
-            <span>{availableOverlapValues[availableOverlapValues.length - 1]} people</span>
+            <span>0</span>
+            {actualMaxOverlap < maxParticipants && (
+              <span 
+                className="text-primary font-medium"
+                style={{ marginRight: `${100 - usablePercentage}%` }}
+              >
+                {actualMaxOverlap}
+              </span>
+            )}
+            <span className={actualMaxOverlap < maxParticipants ? "text-muted-foreground/50" : ""}>
+              {maxParticipants}
+            </span>
           </div>
 
+          {/* Info text */}
+          {actualMaxOverlap < maxParticipants && (
+            <p className="text-xs text-muted-foreground bg-muted/50 rounded px-2 py-1">
+              💡 Max overlap is {actualMaxOverlap} (no time slot has all {maxParticipants} available)
+            </p>
+          )}
 
           <p className="text-xs text-muted-foreground">
-            Showing slots where {minOverlapValue === maxOverlapValue 
-              ? `exactly ${minOverlapValue} ${minOverlapValue === 1 ? 'person is' : 'people are'}`
-              : `${minOverlapValue} to ${maxOverlapValue} people are`
+            Showing slots where {rangeValue[0] === rangeValue[1] 
+              ? `exactly ${rangeValue[0]} ${rangeValue[0] === 1 ? 'person is' : 'people are'}`
+              : `${rangeValue[0]} to ${rangeValue[1]} people are`
             } available
           </p>
         </div>
