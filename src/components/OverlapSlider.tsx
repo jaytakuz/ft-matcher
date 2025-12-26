@@ -1,9 +1,9 @@
-import { useState, useMemo } from 'react';
-import { SlidersHorizontal, Users, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
-import { cn } from '@/lib/utils';
-import type { EventData } from '@/types/event';
+import { useState, useMemo } from "react";
+import { SlidersHorizontal, Users, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { cn } from "@/lib/utils";
+import type { EventData } from "@/types/event";
 
 interface OverlapSliderProps {
   event: EventData;
@@ -14,19 +14,20 @@ export const OverlapSlider = ({ event, onFilterChange }: OverlapSliderProps) => 
   const [isOpen, setIsOpen] = useState(false);
 
   // Calculate unique overlap values that actually exist in the data
-  const { availableOverlapValues, maxParticipants, actualMaxOverlap } = useMemo(() => {
+  const { availableOverlapValues, maxParticipants } = useMemo(() => {
     const overlapCounts = new Map<string, number>();
     const totalParticipants = event.availabilities.length;
 
     if (totalParticipants === 0) {
-      return { availableOverlapValues: [0], maxParticipants: 0, actualMaxOverlap: 0 };
+      return { availableOverlapValues: [0], maxParticipants: 0 };
     }
 
     // Count how many participants are available for each slot
-    event.dates.forEach(date => {
+    event.dates.forEach((date) => {
       const dateStr = new Date(date).toISOString();
-      event.availabilities.forEach(avail => {
-        avail.slots.forEach(slot => {
+      // We need to check all time slots - use a reasonable range
+      event.availabilities.forEach((avail) => {
+        avail.slots.forEach((slot) => {
           if (slot.date === dateStr) {
             const key = `${slot.date}-${slot.time}`;
             const currentCount = overlapCounts.get(key) || 0;
@@ -38,53 +39,54 @@ export const OverlapSlider = ({ event, onFilterChange }: OverlapSliderProps) => 
 
     // Get unique overlap values that exist
     const uniqueValues = new Set<number>();
-    overlapCounts.forEach(count => {
+    overlapCounts.forEach((count) => {
       uniqueValues.add(count);
     });
 
     // Sort the values
     const sortedValues = Array.from(uniqueValues).sort((a, b) => a - b);
-    
+
     // Always include 0 if there are empty slots
     if (!sortedValues.includes(0)) {
       sortedValues.unshift(0);
     }
 
-    const maxOverlap = sortedValues.length > 0 ? sortedValues[sortedValues.length - 1] : 0;
-
     return {
       availableOverlapValues: sortedValues.length > 0 ? sortedValues : [0],
       maxParticipants: totalParticipants,
-      actualMaxOverlap: maxOverlap
     };
   }, [event]);
 
-  // State for the range slider - using actual overlap values (0 to actualMaxOverlap)
-  const [rangeValue, setRangeValue] = useState<[number, number]>([0, actualMaxOverlap]);
+  // State for the range slider
+  const [rangeValue, setRangeValue] = useState<[number, number]>([0, availableOverlapValues.length - 1]);
+
+  // Map slider position to actual overlap value
+  const minOverlapValue = availableOverlapValues[rangeValue[0]] ?? 0;
+  const maxOverlapValue = availableOverlapValues[rangeValue[1]] ?? maxParticipants;
 
   const handleRangeChange = (value: number[]) => {
-    // Clamp values to actualMaxOverlap
-    const clampedMin = Math.min(value[0], actualMaxOverlap);
-    const clampedMax = Math.min(value[1], actualMaxOverlap);
-    
-    const newRange: [number, number] = [clampedMin, clampedMax];
+    const newRange: [number, number] = [value[0], value[1]];
     setRangeValue(newRange);
-    
-    // If range covers everything (0 to max), clear filter
-    if (newRange[0] === 0 && newRange[1] === actualMaxOverlap) {
+
+    const minVal = availableOverlapValues[newRange[0]] ?? 0;
+    const maxVal = availableOverlapValues[newRange[1]] ?? maxParticipants;
+
+    // If range covers everything, clear filter
+    if (newRange[0] === 0 && newRange[1] === availableOverlapValues.length - 1) {
       onFilterChange(null, null);
     } else {
-      onFilterChange(newRange[0], newRange[1]);
+      onFilterChange(minVal, maxVal);
     }
   };
 
   const handleReset = () => {
-    setRangeValue([0, actualMaxOverlap]);
+    setRangeValue([0, availableOverlapValues.length - 1]);
     onFilterChange(null, null);
   };
 
   const handleToggle = () => {
     if (isOpen) {
+      // When closing, reset the filter
       handleReset();
     }
     setIsOpen(!isOpen);
@@ -95,23 +97,15 @@ export const OverlapSlider = ({ event, onFilterChange }: OverlapSliderProps) => 
     return null;
   }
 
-  // Calculate the percentage where the "usable" area ends
-  const usablePercentage = maxParticipants > 0 ? (actualMaxOverlap / maxParticipants) * 100 : 100;
-
   return (
     <div className="space-y-3 w-full sm:w-auto">
       {/* Toggle Button */}
-      <Button
-        variant={isOpen ? "secondary" : "outline"}
-        size="sm"
-        onClick={handleToggle}
-        className="gap-2"
-      >
+      <Button variant={isOpen ? "secondary" : "outline"} size="sm" onClick={handleToggle} className="gap-2">
         <SlidersHorizontal className="h-4 w-4" />
         Filter by Overlap
         {isOpen && (
           <span className="text-xs bg-primary/20 px-1.5 py-0.5 rounded">
-            {rangeValue[0]}-{rangeValue[1]}
+            {minOverlapValue}-{maxOverlapValue}
           </span>
         )}
       </Button>
@@ -125,12 +119,7 @@ export const OverlapSlider = ({ event, onFilterChange }: OverlapSliderProps) => 
               <Users className="h-4 w-4 text-primary" />
               <span>Overlap Filter</span>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleReset}
-              className="h-7 px-2 text-xs"
-            >
+            <Button variant="ghost" size="sm" onClick={handleReset} className="h-7 px-2 text-xs">
               <X className="h-3 w-3 mr-1" />
               Reset
             </Button>
@@ -144,76 +133,57 @@ export const OverlapSlider = ({ event, onFilterChange }: OverlapSliderProps) => 
             </div>
             <div className="bg-background rounded-md p-2">
               <div className="text-xs text-muted-foreground">Min Showing</div>
-              <div className="text-lg font-semibold text-foreground">{rangeValue[0]}</div>
+              <div className="text-lg font-semibold text-foreground">{minOverlapValue}</div>
             </div>
             <div className="bg-background rounded-md p-2">
-              <div className="text-xs text-muted-foreground">Max Overlap</div>
-              <div className="text-lg font-semibold text-foreground">{actualMaxOverlap}</div>
+              <div className="text-xs text-muted-foreground">Max Showing</div>
+              <div className="text-lg font-semibold text-foreground">{maxOverlapValue}</div>
             </div>
           </div>
 
-          {/* Custom Range Slider with visual indicator */}
-          <div className="px-2 relative">
-            {/* Background track showing full range (0 to Total) */}
-            <div className="relative h-2 w-full rounded-full bg-secondary">
-              {/* Usable area indicator */}
-              <div 
-                className="absolute h-full rounded-full bg-secondary"
-                style={{ width: `${usablePercentage}%` }}
-              />
-              {/* Disabled/unavailable area */}
-              {actualMaxOverlap < maxParticipants && (
-                <div 
-                  className="absolute h-full rounded-r-full bg-muted-foreground/20"
-                  style={{ 
-                    left: `${usablePercentage}%`, 
-                    width: `${100 - usablePercentage}%` 
-                  }}
-                />
-              )}
-            </div>
-            
-            {/* Actual slider - limited to actualMaxOverlap */}
-            <div className="absolute inset-0" style={{ width: `${usablePercentage}%` }}>
-              <Slider
-                value={rangeValue}
-                onValueChange={handleRangeChange}
-                min={0}
-                max={actualMaxOverlap}
-                step={1}
-                className="w-full"
-              />
-            </div>
+          {/* Range Slider */}
+          <div className="px-2">
+            <Slider
+              value={rangeValue}
+              onValueChange={handleRangeChange}
+              min={0}
+              max={availableOverlapValues.length - 1}
+              step={1}
+              className="w-full"
+            />
           </div>
 
-          {/* Scale markers */}
-          <div className="relative text-xs text-muted-foreground px-1 h-5">
-            <span className="absolute left-0">0</span>
-            {actualMaxOverlap < maxParticipants && (
-              <span 
-                className="absolute text-primary font-medium -translate-x-1/2"
-                style={{ left: `${usablePercentage}%` }}
-              >
-                {actualMaxOverlap}
-              </span>
-            )}
-            <span className={`absolute right-0 ${actualMaxOverlap < maxParticipants ? "text-muted-foreground/50" : ""}`}>
-              {maxParticipants}
-            </span>
+          {/* Available Values Display */}
+          <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
+            <span>0 people</span>
+            <span>{maxParticipants} people</span>
           </div>
 
-          {/* Info text */}
-          {actualMaxOverlap < maxParticipants && (
-            <p className="text-xs text-muted-foreground bg-muted/50 rounded px-2 py-1">
-              💡Filtering {rangeValue[0]} to {rangeValue[1]} people are available
-            </p>
+          {/* Active Values Pills */}
+          {availableOverlapValues.length > 2 && (
+            <div className="flex flex-wrap gap-1.5">
+              {availableOverlapValues.map((val, idx) => (
+                <span
+                  key={val}
+                  className={cn(
+                    "text-xs px-2 py-0.5 rounded-full transition-colors",
+                    idx >= rangeValue[0] && idx <= rangeValue[1]
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground",
+                  )}
+                >
+                  {val}
+                </span>
+              ))}
+            </div>
           )}
 
           <p className="text-xs text-muted-foreground">
-            Showing slots where {rangeValue[0] === rangeValue[1] 
-              ? `exactly ${rangeValue[0]} ${rangeValue[0] === 1 ? 'person is' : 'people are'}`
-              : `${rangeValue[0]} to ${rangeValue[1]} people are`
-            } available
+            Showing slots where{" "}
+            {minOverlapValue === maxOverlapValue
+              ? `exactly ${minOverlapValue} ${minOverlapValue === 1 ? "person is" : " people are"}`
+              : `${minOverlapValue} to ${maxOverlapValue} people are`}{" "}
+            available
           </p>
         </div>
       )}
