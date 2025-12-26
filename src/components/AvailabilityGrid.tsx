@@ -256,9 +256,6 @@ export const AvailabilityGrid = ({
                         isDateOnly ? "h-24" : "h-20",
                         holiday && "bg-destructive/10"
                       )}>
-                        {holiday && (
-                          <span className="text-destructive text-sm">🎉</span>
-                        )}
                         <span className={cn(
                           "text-[10px] uppercase",
                           holiday ? "text-destructive" : "text-muted-foreground"
