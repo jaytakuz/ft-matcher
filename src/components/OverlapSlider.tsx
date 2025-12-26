@@ -57,30 +57,30 @@ export const OverlapSlider = ({ event, onFilterChange }: OverlapSliderProps) => 
     };
   }, [event]);
 
-  // State for the range slider
-  const [rangeValue, setRangeValue] = useState<[number, number]>([0, availableOverlapValues.length - 1]);
+  // Get max overlap value (highest overlap that exists in data)
+  const maxOverlapInData = availableOverlapValues[availableOverlapValues.length - 1] ?? 0;
 
-  // Map slider position to actual overlap value
-  const minOverlapValue = availableOverlapValues[rangeValue[0]] ?? 0;
-  const maxOverlapValue = availableOverlapValues[rangeValue[1]] ?? maxParticipants;
+  // State for the single slider value (starts at 0)
+  const [sliderValue, setSliderValue] = useState<number>(0);
 
-  const handleRangeChange = (value: number[]) => {
-    const newRange: [number, number] = [value[0], value[1]];
-    setRangeValue(newRange);
+  const handleSliderChange = (value: number[]) => {
+    const newValue = value[0];
+    setSliderValue(newValue);
     
-    const minVal = availableOverlapValues[newRange[0]] ?? 0;
-    const maxVal = availableOverlapValues[newRange[1]] ?? maxParticipants;
-    
-    // If range covers everything, clear filter
-    if (newRange[0] === 0 && newRange[1] === availableOverlapValues.length - 1) {
+    // Filter: show slots with overlap >= 0 and <= newValue
+    if (newValue === 0) {
+      // Show nothing when at 0
+      onFilterChange(0, 0);
+    } else if (newValue >= maxOverlapInData) {
+      // Show everything when at max
       onFilterChange(null, null);
     } else {
-      onFilterChange(minVal, maxVal);
+      onFilterChange(0, newValue);
     }
   };
 
   const handleReset = () => {
-    setRangeValue([0, availableOverlapValues.length - 1]);
+    setSliderValue(maxOverlapInData);
     onFilterChange(null, null);
   };
 
@@ -110,7 +110,7 @@ export const OverlapSlider = ({ event, onFilterChange }: OverlapSliderProps) => 
         Filter by Overlap
         {isOpen && (
           <span className="text-xs bg-primary/20 px-1.5 py-0.5 rounded">
-            {minOverlapValue}-{maxOverlapValue}
+            0-{sliderValue}
           </span>
         )}
       </Button>
@@ -136,28 +136,24 @@ export const OverlapSlider = ({ event, onFilterChange }: OverlapSliderProps) => 
           </div>
 
           {/* Stats Row */}
-          <div className="grid grid-cols-3 gap-2 text-center">
+          <div className="grid grid-cols-2 gap-2 text-center">
             <div className="bg-background rounded-md p-2">
               <div className="text-xs text-muted-foreground">Total</div>
               <div className="text-lg font-semibold text-primary">{maxParticipants}</div>
             </div>
             <div className="bg-background rounded-md p-2">
-              <div className="text-xs text-muted-foreground">Min Showing</div>
-              <div className="text-lg font-semibold text-foreground">{minOverlapValue}</div>
-            </div>
-            <div className="bg-background rounded-md p-2">
-              <div className="text-xs text-muted-foreground">Max Overlap</div>
-              <div className="text-lg font-semibold text-foreground">{maxOverlapValue}</div>
+              <div className="text-xs text-muted-foreground">Showing Up To</div>
+              <div className="text-lg font-semibold text-foreground">{sliderValue}</div>
             </div>
           </div>
 
-          {/* Range Slider */}
+          {/* Single Slider */}
           <div className="px-2">
             <Slider
-              value={rangeValue}
-              onValueChange={handleRangeChange}
+              value={[sliderValue]}
+              onValueChange={handleSliderChange}
               min={0}
-              max={availableOverlapValues.length - 1}
+              max={maxOverlapInData}
               step={1}
               className="w-full"
             />
@@ -166,15 +162,11 @@ export const OverlapSlider = ({ event, onFilterChange }: OverlapSliderProps) => 
           {/* Available Values Display */}
           <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
             <span>0 people</span>
-            <span>{maxParticipants} people</span>
+            <span>{maxOverlapInData} people (max overlap)</span>
           </div>
 
-
           <p className="text-xs text-muted-foreground">
-            Showing slots where {minOverlapValue === maxOverlapValue 
-              ? `exactly ${minOverlapValue} ${minOverlapValue === 1 ? 'person is' : 'people are'}`
-              : `${minOverlapValue} to ${maxOverlapValue} people are`
-            } available
+            Showing slots where up to {sliderValue} {sliderValue === 1 ? 'person is' : 'people are'} available
           </p>
         </div>
       )}
