@@ -209,12 +209,6 @@ export const OverlapSlider = ({ event, onFilterChange }: OverlapSliderProps) => 
             </p>
           )}
 
-          <p className="text-xs text-muted-foreground">
-            Showing slots where {rangeValue[0] === rangeValue[1] 
-              ? `exactly ${rangeValue[0]} ${rangeValue[0] === 1 ? 'person is' : 'people are'}`
-              : `${rangeValue[0]} to ${rangeValue[1]} people are`
-            } available
-          </p>
         </div>
       )}
     </div>
