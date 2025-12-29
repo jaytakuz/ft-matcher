@@ -166,6 +166,8 @@ export const AddToCalendarDialog = ({
     setDate(pick.date);
     setStartTime(pick.startTime);
     setEndTime(pick.endTime);
+    // Auto-select only participants available for this pick
+    setSelectedParticipants(pick.participants);
   };
 
   const handleParticipantToggle = (name: string) => {
@@ -174,8 +176,19 @@ export const AddToCalendarDialog = ({
     );
   };
 
+  // Get the current available participants based on mode and selected pick
+  const availableParticipantsForSelection = useMemo(() => {
+    if (mode === 'picks' && date && startTime) {
+      const selectedPick = topPicks.find(p => p.date === date && p.startTime === startTime);
+      if (selectedPick) {
+        return selectedPick.participants;
+      }
+    }
+    return participantNames;
+  }, [mode, date, startTime, topPicks, participantNames]);
+
   const handleSelectAll = () => {
-    setSelectedParticipants(participantNames);
+    setSelectedParticipants(availableParticipantsForSelection);
   };
 
   const handleDeselectAll = () => {
@@ -349,7 +362,7 @@ export const AddToCalendarDialog = ({
             <div className="flex items-center justify-between">
               <Label className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-primary" />
-                Participants ({selectedParticipants.length}/{participantNames.length})
+                Participants ({selectedParticipants.length}/{availableParticipantsForSelection.length})
               </Label>
               <div className="flex gap-2">
                 <Button
@@ -373,8 +386,8 @@ export const AddToCalendarDialog = ({
               </div>
             </div>
             <div className="border rounded-md p-3 max-h-40 overflow-y-auto space-y-2">
-              {participantNames.length > 0 ? (
-                participantNames.map((name, i) => (
+              {availableParticipantsForSelection.length > 0 ? (
+                availableParticipantsForSelection.map((name, i) => (
                   <div key={i} className="flex items-center gap-2">
                     <Checkbox
                       id={`participant-${i}`}
@@ -390,7 +403,7 @@ export const AddToCalendarDialog = ({
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-muted-foreground">No participants yet</p>
+                <p className="text-sm text-muted-foreground">No participants available for this time slot</p>
               )}
             </div>
           </div>
