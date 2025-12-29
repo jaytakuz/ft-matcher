@@ -176,8 +176,8 @@ export const AddToCalendarDialog = ({
     );
   };
 
-  // Get the current available participants based on mode and selected pick
-  const availableParticipantsForSelection = useMemo(() => {
+  // Get the participants available for the selected pick
+  const availableParticipantsForPick = useMemo(() => {
     if (mode === 'picks' && date && startTime) {
       const selectedPick = topPicks.find(p => p.date === date && p.startTime === startTime);
       if (selectedPick) {
@@ -188,7 +188,7 @@ export const AddToCalendarDialog = ({
   }, [mode, date, startTime, topPicks, participantNames]);
 
   const handleSelectAll = () => {
-    setSelectedParticipants(availableParticipantsForSelection);
+    setSelectedParticipants(participantNames);
   };
 
   const handleDeselectAll = () => {
@@ -362,7 +362,7 @@ export const AddToCalendarDialog = ({
             <div className="flex items-center justify-between">
               <Label className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-primary" />
-                Participants ({selectedParticipants.length}/{availableParticipantsForSelection.length})
+                Participants ({selectedParticipants.length}/{participantNames.length})
               </Label>
               <div className="flex gap-2">
                 <Button
@@ -386,24 +386,32 @@ export const AddToCalendarDialog = ({
               </div>
             </div>
             <div className="border rounded-md p-3 max-h-40 overflow-y-auto space-y-2">
-              {availableParticipantsForSelection.length > 0 ? (
-                availableParticipantsForSelection.map((name, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <Checkbox
-                      id={`participant-${i}`}
-                      checked={selectedParticipants.includes(name)}
-                      onCheckedChange={() => handleParticipantToggle(name)}
-                    />
-                    <Label
-                      htmlFor={`participant-${i}`}
-                      className="text-sm font-normal cursor-pointer flex-1 truncate"
-                    >
-                      {name}
-                    </Label>
-                  </div>
-                ))
+              {participantNames.length > 0 ? (
+                participantNames.map((name, i) => {
+                  const isAvailable = availableParticipantsForPick.includes(name);
+                  return (
+                    <div key={i} className="flex items-center gap-2">
+                      <Checkbox
+                        id={`participant-${i}`}
+                        checked={selectedParticipants.includes(name)}
+                        onCheckedChange={() => handleParticipantToggle(name)}
+                      />
+                      <Label
+                        htmlFor={`participant-${i}`}
+                        className={`text-sm font-normal cursor-pointer flex-1 truncate ${
+                          !isAvailable && mode === 'picks' ? 'text-muted-foreground' : ''
+                        }`}
+                      >
+                        {name}
+                      </Label>
+                      {!isAvailable && mode === 'picks' && date && startTime && (
+                        <span className="text-xs text-muted-foreground">(unavailable)</span>
+                      )}
+                    </div>
+                  );
+                })
               ) : (
-                <p className="text-sm text-muted-foreground">No participants available for this time slot</p>
+                <p className="text-sm text-muted-foreground">No participants yet</p>
               )}
             </div>
           </div>
