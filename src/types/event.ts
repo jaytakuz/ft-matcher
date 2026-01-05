@@ -36,6 +36,7 @@ export interface RecommendedSlot {
   endTime: string;
   participants: string[];
   score: number;
+  time: string;
 }
 
 export type VisualizationMode = 'heatmap';

@@ -3,7 +3,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
 // Mock mode: Set to true to bypass actual Google OAuth
-const MOCK_AUTH_MODE = true;
+const MOCK_AUTH_MODE = false;
 
 // Mock user for demo purposes
 const MOCK_USER = {
@@ -71,6 +71,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
+        scopes: 'https://www.googleapis.com/auth/calendar',
+        
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
         redirectTo: redirectUrl
       }
     });
