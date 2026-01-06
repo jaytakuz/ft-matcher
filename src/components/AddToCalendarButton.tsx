@@ -18,27 +18,42 @@ export const AddToCalendarButton = ({ event, selectedSlot, disabled }: AddToCale
 
   const handleConfirm = async (data: CalendarEventData) => {
     try {
-      console.log("Final Booking Data:", data); // ดูค่าจริงที่ส่งมา
+      console.log("Final Booking Data:", data); 
 
-      // 1. Check Token
+      // ---------------------------------------------------------
+      // 1. Check Token & Auto Login (Modified) 🔐
+      // ---------------------------------------------------------
       const { data: { session } } = await supabase.auth.getSession();
       const googleToken = session?.provider_token;
 
       if (!googleToken) {
         toast({
-          title: "Authentication Error",
-          description: "Please sign in with Google to create calendar events.",
-          variant: "destructive",
+          title: "Login Required",
+          description: "Redirecting to Google Login to enable calendar access...",
         });
-        return;
+
+        // Redirect user to login and come back to THIS page
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            scopes: 'https://www.googleapis.com/auth/calendar',
+            redirectTo: window.location.href, // 👈 Key Logic
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'consent',
+            },
+          },
+        });
+
+        if (error) throw error;
+        return; // Stop execution here
       }
 
       // ---------------------------------------------------------
-      // 2. 🟢 ส่วนที่แก้ (V.Final Real): เชื่อ data จาก Dialog 100%
+      // 2. 🟢 เชื่อ data จาก Dialog 100%
       // ---------------------------------------------------------
 
       // A. จัดการวันที่ (Date) 📅
-      // ใช้ data.date โดยตรง (Dialog จัดการมาให้แล้วว่าเป็นวันที่ที่เลือก)
       let year, month, day;
       if (data.date.includes('T')) {
          const dateObj = new Date(data.date);
@@ -50,11 +65,8 @@ export const AddToCalendarButton = ({ event, selectedSlot, disabled }: AddToCale
       }
 
       // B. จัดการเวลา (Time) ⏰
-      // เลิกมอง selectedSlot แล้วใช้ startTime/endTime จาก data แทน
-      // ซึ่งรองรับทั้ง Manual (ที่เลือกเวลาเอง) และ Top Pick (ที่ Dialog แปลงมาให้แล้ว)
-      
       const parseTime = (str: string) => {
-        if (!str) return { h: 0, m: 0 }; // กันเหนียว
+        if (!str) return { h: 0, m: 0 };
         const cleanStr = str.trim();
         const [timePart, modifier] = cleanStr.split(' '); 
         let [h, m = 0] = timePart.split(':').map(Number);
@@ -64,29 +76,26 @@ export const AddToCalendarButton = ({ event, selectedSlot, disabled }: AddToCale
         return { h, m };
       };
 
-      // ดึงเวลาเริ่ม-จบ จาก data โดยตรง
-      const startT = parseTime(data.startTime); // เช่น "11:30" หรือ "11:30 AM"
-      const endT = parseTime(data.endTime);     // เช่น "14:30" หรือ "02:30 PM"
+      const startT = parseTime(data.startTime); 
+      const endT = parseTime(data.endTime);     
 
-      // สร้าง Date Object
       const startDateTime = new Date(year, month - 1, day, startT.h, startT.m);
       const endDateTime = new Date(year, month - 1, day, endT.h, endT.m);
 
-      // เช็คว่าเวลาจบ น้อยกว่าเวลาเริ่มไหม? (ข้ามวัน) -> ถ้าใช่ ให้บวกวันเพิ่ม (เผื่อไว้)
       if (endDateTime < startDateTime) {
          endDateTime.setDate(endDateTime.getDate() + 1);
       }
 
-      // เช็คความถูกต้อง
       if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
         throw new Error(`Invalid date/time processing. Date: ${data.date}, Start: ${data.startTime}`);
       }
       
       const startISO = startDateTime.toISOString();
       const endISO = endDateTime.toISOString();
-      // ---------------------------------------------------------
 
+      // ---------------------------------------------------------
       // 3. Create Event
+      // ---------------------------------------------------------
       const response = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
         method: 'POST',
         headers: {
