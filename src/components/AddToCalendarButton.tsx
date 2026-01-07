@@ -18,7 +18,7 @@ export const AddToCalendarButton = ({ event, selectedSlot, disabled }: AddToCale
 
   const handleConfirm = async (data: CalendarEventData) => {
     try {
-      console.log("Final Booking Data:", data); 
+      // console.log("Final Booking Data:", data); 
 
       // ---------------------------------------------------------
       // 1. Check Token & Auto Login (Modified) 🔐
@@ -129,7 +129,7 @@ export const AddToCalendarButton = ({ event, selectedSlot, disabled }: AddToCale
         description: `"${data.eventName}" scheduled on ${day}/${month}/${year}.`,
       });
 
-      console.log('Google Calendar event created:', calendarEvent);
+      // console.log('Google Calendar event created:', calendarEvent);
 
     } catch (error) {
       console.error('Error creating calendar event:', error);

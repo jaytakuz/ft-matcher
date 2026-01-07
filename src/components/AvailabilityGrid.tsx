@@ -306,8 +306,8 @@ export const AvailabilityGrid = ({
                     />
                   );
 
-                  // Show tooltip when there are participants
-                  if (participants.length > 0) {
+                  // Show tooltip when there are unavailable participants
+                  if (participants.length > 0 && unavailable.length > 0) {
                     const displayUnavailable = unavailable.slice(0, 5);
                     const hasMoreUnavailable = unavailable.length > 5;
                     
@@ -320,12 +320,10 @@ export const AvailabilityGrid = ({
                             <p className="font-medium text-sm mb-1 text-destructive">
                               {unavailable.length} unavailable
                             </p>
-                            {unavailable.length > 0 && (
-                              <p className="text-xs text-foreground">
-                                {displayUnavailable.map(n => truncateName(n)).join(', ')}
-                                {hasMoreUnavailable && ` +${unavailable.length - 5}`}
-                              </p>
-                            )}
+                            <p className="text-xs text-foreground">
+                              {displayUnavailable.map(n => truncateName(n)).join(', ')}
+                              {hasMoreUnavailable && ` +${unavailable.length - 5}`}
+                            </p>
                           </>
                         }
                       >
