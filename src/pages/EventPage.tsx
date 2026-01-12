@@ -2,21 +2,12 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { 
-  CalendarCheck, 
-  Plus, 
-  Check, 
-  Users,
-  ArrowLeft,
-  Pencil,
-  Eye,
-  EyeOff,
-  Copy
+  CalendarCheck, Plus, Check, Users, ArrowLeft, Pencil, Eye, EyeOff, Copy
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useToast } from '@/hooks/use-toast';
 import { AvailabilityGrid } from '@/components/AvailabilityGrid';
@@ -28,19 +19,40 @@ import { EventCodeDisplay } from '@/components/EventCodeDisplay';
 import { AddToCalendarButton } from '@/components/AddToCalendarButton';
 import { OverlapSlider } from '@/components/OverlapSlider';
 import { ParticipantsList } from '@/components/ParticipantsList';
-import { getEvent, saveAvailability } from '@/lib/eventService';
-import type { EventData, TimeSlot, Availability, RecommendedSlot } from '@/types/event';
+import { getEvent } from '@/lib/eventService'; 
+import type { EventData, TimeSlot, RecommendedSlot } from '@/types/event';
+
+// Import Supabase และ Token Utility
+import { supabase } from "@/integrations/supabase/client"; 
+import { getGuestToken } from '@/utils/guestToken';
 
 const EventPage = () => {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
+  
+  const [supabaseUser, setSupabaseUser] = useState<any>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setSupabaseUser(user);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSupabaseUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   const gridRef = useRef<HTMLDivElement>(null);
   const [event, setEvent] = useState<EventData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditMode, setIsEditMode] = useState(false);
   const [showParticipantForm, setShowParticipantForm] = useState(false);
-  const [currentUser, setCurrentUser] = useState<string | null>(null);
+  
+  const [currentUser, setCurrentUser] = useState<string | null>(null); 
   const [currentUserEmail, setCurrentUserEmail] = useState<string | undefined>(undefined);
+  
   const [selectedSlots, setSelectedSlots] = useState<TimeSlot[]>([]);
   const [copied, setCopied] = useState(false);
   const [showOthersAvailability, setShowOthersAvailability] = useState(true);
@@ -49,10 +61,35 @@ const EventPage = () => {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<{ date: string; startTime: string; endTime: string } | null>(null);
   const [showHolidays, setShowHolidays] = useState(true);
 
-  // Calculate the first best time recommendation
+  // 🟢 1. Logic ใหม่: ค้นหา Availability ของฉัน (รองรับทั้ง User และ Guest Token)
+  const myAvailability = useMemo(() => {
+    if (!event) return undefined;
+
+    // A. ถ้า Login: เช็คจาก User ID
+    if (supabaseUser) {
+      return event.availabilities.find(a => a.userId === supabaseUser.id);
+    }
+
+    // B. ถ้า Guest: เช็คจาก Token ในเครื่อง
+    const localToken = getGuestToken();
+    return event.availabilities.find(a => a.guestToken === localToken);
+  }, [event, supabaseUser]);
+
+  // 🟢 2. Auto Load: ถ้าเจอข้อมูลเก่า (myAvailability) ให้โหลดมาใส่เลย
+  useEffect(() => {
+    if (myAvailability) {
+      // โหลดเวลาเดิม
+      setSelectedSlots(myAvailability.slots);
+
+      // ถ้าเป็น Guest ให้โหลดชื่อเดิมมาใส่ด้วย (User Login มีชื่อใน metadata อยู่แล้ว)
+      if (!supabaseUser) {
+        setCurrentUser(myAvailability.participantName);
+      }
+    }
+  }, [myAvailability, supabaseUser]);
+
   const firstRecommendation = useMemo((): RecommendedSlot | undefined => {
     if (!event || event.availabilities.length < 2) return undefined;
-    
     const slotLength = event.slotLength || 30;
     const eventDuration = event.duration;
     
@@ -168,109 +205,132 @@ const EventPage = () => {
     setCurrentUserEmail(email);
     setShowParticipantForm(false);
     
-    // Check if user already has availability
+    // Check if user already has availability (Fallback logic)
     const existingAvailability = event?.availabilities.find(
       a => a.participantName.toLowerCase() === name.toLowerCase()
     );
     
     if (existingAvailability) {
       setSelectedSlots(existingAvailability.slots);
-    } else {
-      setSelectedSlots([]);
     }
     
-    // Hide others' availability by default when entering edit mode
     setShowOthersAvailability(false);
     setIsEditMode(true);
   };
 
   const handleSaveAvailability = async () => {
-    if (!event || !currentUser) return;
+    if (!event) return;
 
-    setIsSaving(true);
-    const { error } = await saveAvailability(event.id, currentUser, selectedSlots);
+    const nameToSave = supabaseUser 
+      ? (supabaseUser.user_metadata?.full_name || supabaseUser.email) 
+      : currentUser;
 
-    if (error) {
-      toast({
-        title: "Error saving availability",
-        description: "Please try again.",
-        variant: "destructive",
-      });
-      setIsSaving(false);
+    if (!nameToSave || (!nameToSave.trim())) {
+      toast({ title: "Name required", variant: "destructive" });
+      setShowParticipantForm(true);
       return;
     }
 
-    // Reload event to get updated data
-    await loadEvent();
+    setIsSaving(true);
 
-    setIsEditMode(false);
-    setShowOthersAvailability(true);
-    setIsSaving(false);
-    toast({
-      title: "Availability saved!",
-      description: `Your availability has been updated.`,
-    });
+    try {
+      const userId = supabaseUser ? supabaseUser.id : null;
+      const guestToken = !supabaseUser ? getGuestToken() : null;
+
+      // 1. ลบข้อมูลเก่าทิ้ง (Logic ครอบคลุมทั้ง User และ Guest)
+      let deleteQuery = supabase.from("availabilities").delete().eq("event_id", event.id);
+
+      if (userId) {
+        deleteQuery = deleteQuery.eq("user_id", userId);
+      } else if (guestToken) {
+        deleteQuery = deleteQuery.eq("guest_token", guestToken);
+      }
+
+      await deleteQuery;
+
+      // 2. ถ้ามี slot ให้บันทึกใหม่
+      if (selectedSlots.length > 0) {
+        const { data: newAvail, error: insertError } = await supabase
+          .from("availabilities")
+          .insert({
+            event_id: event.id,
+            participant_id: crypto.randomUUID(),
+            participant_name: nameToSave,
+            user_id: userId || null,
+            guest_token: userId ? null : guestToken,
+          })
+          .select("id")
+          .single();
+
+        if (insertError) throw insertError;
+
+        const slotsToInsert = selectedSlots.map((s) => ({
+          availability_id: newAvail.id,
+          date: s.date,
+          time: s.time || s.startTime,
+        }));
+
+        const { error: slotsError } = await supabase.from("slots").insert(slotsToInsert);
+        if (slotsError) throw slotsError;
+      }
+
+      // --- Success ---
+      await loadEvent();
+      setIsEditMode(false);
+      setShowOthersAvailability(true);
+      toast({ title: "Availability saved!", description: `Updated successfully.` });
+
+    } catch (error) {
+      console.error("Save Error:", error);
+      toast({ title: "Error saving", description: "Please try again.", variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCancelEdit = () => {
     setIsEditMode(false);
-    setSelectedSlots([]);
-    setCurrentUser(null);
+    // ถ้าเป็น Guest และยังไม่ได้ Save (หรือ Cancel) อาจจะเคลียร์ค่า หรือถ้าอยากให้จำค่าไว้ก็ได้
+    if (!supabaseUser && !myAvailability) {
+        setSelectedSlots([]);
+        setCurrentUser(null);
+    } else if (myAvailability) {
+        // ถ้า Cancel แต่มีข้อมูลเก่าอยู่แล้ว ให้โหลดข้อมูลเก่ากลับมา
+        setSelectedSlots(myAvailability.slots);
+    }
     setCurrentUserEmail(undefined);
-    // Show others' availability again after canceling
     setShowOthersAvailability(true);
   };
 
   const handleOverlapFilterChange = (min: number | null, max: number | null) => {
     setOverlapFilter({ min, max });
   };
-
   const handleSelectTimeSlot = (slot: { date: string; startTime: string; endTime: string }) => {
-    // Toggle: if same slot is clicked, clear it
     if (selectedTimeSlot && selectedTimeSlot.date === slot.date && selectedTimeSlot.startTime === slot.startTime) {
       setSelectedTimeSlot(null);
     } else {
       setSelectedTimeSlot(slot);
-      // Scroll to top of grid
       gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
-
   const handleTopPickSelect = (slot: RecommendedSlot) => {
     handleSelectTimeSlot({ date: slot.date, startTime: slot.startTime, endTime: slot.endTime });
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
-      </div>
-    );
-  }
-
-  if (!event) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-        <h1 className="text-2xl font-bold">Event not found</h1>
-        <p className="text-muted-foreground">This event may have been deleted or the link is incorrect.</p>
-        <Link to="/">
-          <Button variant="outline">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Home
-          </Button>
-        </Link>
-      </div>
-    );
-  }
+  if (loading) return <div className="min-h-screen flex items-center justify-center animate-pulse">Loading...</div>;
+  if (!event) return <div className="min-h-screen flex flex-col items-center justify-center">Event not found</div>;
 
   const sortedDates = event.dates.map(d => new Date(d)).sort((a, b) => a.getTime() - b.getTime());
   const dateRange = sortedDates.length > 1
     ? `${format(sortedDates[0], 'MMM d')} - ${format(sortedDates[sortedDates.length - 1], 'MMM d, yyyy')}`
     : format(sortedDates[0], 'MMMM d, yyyy');
 
+  const editingName = supabaseUser 
+    ? (supabaseUser.user_metadata?.full_name || supabaseUser.email) 
+    : currentUser;
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
@@ -285,23 +345,18 @@ const EventPage = () => {
       </header>
 
       <main className="container mx-auto px-4 py-6 md:py-8">
-        {/* Event Header */}
         <div className="mb-6">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-2">
             <div>
               <h1 className="text-2xl md:text-3xl font-bold mb-1">{event.name}</h1>
-              <p className="text-muted-foreground">
-                Hosted by {event.hostName} • {dateRange}
-              </p>
+              <p className="text-muted-foreground">Hosted by {event.hostName} • {dateRange}</p>
               {event.duration && (
-                <Badge variant="secondary" className="mt-2">
-                  {event.duration < 60 ? `${event.duration} min` : `${event.duration / 60} hour${event.duration > 60 ? 's' : ''}`} event
-                </Badge>
+                <Badge variant="secondary" className="mt-2">{event.duration} min event</Badge>
               )}
             </div>
             <div className="flex items-center gap-2">
               <Popover>
-                <PopoverTrigger asChild>
+                <PopoverTrigger> 
                   <Badge variant="secondary" className="flex items-center gap-1 cursor-pointer hover:bg-secondary/80 transition-colors">
                     <Users className="h-3 w-3" />
                     {event.availabilities.length} response{event.availabilities.length !== 1 ? 's' : ''}
@@ -314,9 +369,7 @@ const EventPage = () => {
                   ) : (
                     <ul className="space-y-1">
                       {event.availabilities.map((a) => (
-                        <li key={a.participantId} className="text-sm">
-                          {a.participantName}
-                        </li>
+                        <li key={a.participantId} className="text-sm">{a.participantName}</li>
                       ))}
                     </ul>
                   )}
@@ -326,50 +379,46 @@ const EventPage = () => {
           </div>
         </div>
 
-        {/* Top Recommendation - only shows when 2+ participants have overlapping times */}
         <div className="mb-6">
           <TopRecommendation event={event} onSelect={handleTopPickSelect} />
         </div>
 
         <div ref={gridRef} className="grid lg:grid-cols-[1fr_320px] gap-6">
-          {/* Main Grid Section */}
           <div className="space-y-4">
-            {/* Controls with Edit Button */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-card rounded-lg border border-border">
               <div className="flex items-center gap-3">
-                {!isEditMode && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowParticipantForm(true)}
-                    className="gap-2"
-                  >
-                    <Pencil className="h-4 w-4" />
-                    Add
+                
+                {/* 🟢 3. ปุ่มฉลาดขึ้น: ถ้ายังไม่เคยลง (ทั้ง User/Guest) โชว์ Add */}
+                {!isEditMode && !myAvailability && (
+                  <Button variant="outline" size="sm" onClick={() => setShowParticipantForm(true)} className="gap-2">
+                    <Pencil className="h-4 w-4" /> Add Availability
                   </Button>
                 )}
-                {showOthersAvailability ? (
-                  <Eye className="h-4 w-4 text-muted-foreground" />
-                ) : (
-                  <EyeOff className="h-4 w-4 text-muted-foreground" />
+
+                {/* 🟢 4. ถ้าเคยลงแล้ว (มี myAvailability) โชว์ Edit */}
+                {!isEditMode && myAvailability && (
+                  <Button 
+                    variant="default" 
+                    size="sm" 
+                    onClick={() => { 
+                      setIsEditMode(true); 
+                      setShowOthersAvailability(false); 
+                    }} 
+                    className="gap-2"
+                  >
+                    <Pencil className="h-4 w-4" /> Edit My Availability
+                  </Button>
                 )}
+                
+                {showOthersAvailability ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                 <Label htmlFor="show-others" className="text-sm cursor-pointer">
                   {isEditMode ? "Show others' availability" : "Show all availability"}
                 </Label>
-                <Switch
-                  id="show-others"
-                  checked={showOthersAvailability}
-                  onCheckedChange={setShowOthersAvailability}
-                />
+                <Switch id="show-others" checked={showOthersAvailability} onCheckedChange={setShowOthersAvailability} />
               </div>
               <div className="flex items-center gap-3">
                 {selectedTimeSlot && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedTimeSlot(null)}
-                    className="text-xs"
-                  >
+                  <Button variant="ghost" size="sm" onClick={() => setSelectedTimeSlot(null)} className="text-xs">
                     Clear time filter
                   </Button>
                 )}
@@ -377,32 +426,19 @@ const EventPage = () => {
               </div>
             </div>
 
-            {/* Holiday Toggle & Overlap Slider */}
             <div className="flex flex-wrap items-start gap-4">
               <div className="flex items-center gap-2 mt-1.5">
-                <Switch
-                  id="show-holidays"
-                  checked={showHolidays}
-                  onCheckedChange={setShowHolidays}
-                />
-                <Label htmlFor="show-holidays" className="text-sm cursor-pointer">
-                  Show Holidays
-                </Label>
+                <Switch id="show-holidays" checked={showHolidays} onCheckedChange={setShowHolidays} />
+                <Label htmlFor="show-holidays" className="text-sm cursor-pointer">Show Holidays</Label>
               </div>
-              
-              {/* Overlap Slider Filter */}
               {!isEditMode && event.availabilities.length > 0 && (
-                <OverlapSlider 
-                  event={event} 
-                  onFilterChange={handleOverlapFilterChange} 
-                />
+                <OverlapSlider event={event} onFilterChange={handleOverlapFilterChange} />
               )}
             </div>
 
-            {/* Grid */}
             <AvailabilityGrid
               event={event}
-              currentUser={currentUser ?? undefined}
+              currentUser={editingName ?? undefined} 
               isEditMode={isEditMode}
               visualizationMode="heatmap"
               selectedSlots={selectedSlots}
@@ -413,50 +449,27 @@ const EventPage = () => {
               showHolidays={showHolidays}
             />
 
-            {/* Action Buttons */}
             {isEditMode && (
               <div className="flex flex-col sm:flex-row gap-3">
-                <Button onClick={handleSaveAvailability} variant="default" size="lg" className="w-full sm:w-auto" disabled={isSaving}>
-                  {isSaving ? (
-                    <span className="animate-pulse">Saving...</span>
-                  ) : (
-                    <>
-                      <Check className="mr-2 h-4 w-4" />
-                      Save Availability
-                    </>
-                  )}
+                <Button onClick={handleSaveAvailability} variant="default" size="lg" disabled={isSaving}>
+                  {isSaving ? "Saving..." : <><Check className="mr-2 h-4 w-4" /> Save Availability</>}
                 </Button>
-                <Button onClick={handleCancelEdit} variant="outline" size="lg" className="w-full sm:w-auto">
-                  Cancel
-                </Button>
-                {currentUser && (
+                <Button onClick={handleCancelEdit} variant="outline" size="lg">Cancel</Button>
+                {editingName && (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground sm:ml-auto">
-                    <Pencil className="h-4 w-4" />
-                    Editing as <span className="font-medium text-foreground">{currentUser}</span>
+                    <Pencil className="h-4 w-4" /> Editing as <span className="font-medium">{editingName}</span>
                   </div>
                 )}
               </div>
             )}
-
-            {isEditMode && (
-              <p className="text-sm text-muted-foreground">
-                Click and drag on the grid to select your available times. Selected slots are highlighted in green.
-              </p>
-            )}
+            
+            {isEditMode && <p className="text-sm text-muted-foreground">Click and drag to select times.</p>}
           </div>
 
-          {/* Sidebar - Participants & Best Times */}
           <aside className="space-y-4">
-            {/* Event Code Display */}
             <EventCodeDisplay eventId={event.id} />
-
-            {/* Add to Calendar Button */}
             <AddToCalendarButton event={event} selectedSlot={firstRecommendation} />
-
-            {/* Best Times List */}
             <RecommendedTimes event={event} onSelectTime={handleSelectTimeSlot} />
-
-            {/* Participants List */}
             <ParticipantsList participants={event.availabilities.map(a => a.participantName)} />
           </aside>
         </div>

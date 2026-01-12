@@ -6,6 +6,8 @@ export interface TimeSlot {
 export interface Availability {
   participantId: string;
   participantName: string;
+  userId?: string | null;
+  guestToken?: string | null;
   slots: TimeSlot[];
 }
 
