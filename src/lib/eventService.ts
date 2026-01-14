@@ -52,6 +52,7 @@ export async function getEvent(id: string): Promise<{ data: EventData | null; er
         id,
         participant_id,
         participant_name,
+        guest_token,
         slots (
           date,
           time
@@ -64,6 +65,8 @@ export async function getEvent(id: string): Promise<{ data: EventData | null; er
     const availabilities: Availability[] = (availabilityRows || []).map((a) => ({
       participantId: a.participant_id,
       participantName: a.participant_name,
+      userId: a.user_id,
+      guestToken: a.guest_token,
       slots: (a.slots || []).map((s: { date: string; time: string }) => ({
         date: s.date,
         time: s.time,

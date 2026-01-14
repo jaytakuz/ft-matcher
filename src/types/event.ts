@@ -6,6 +6,8 @@ export interface TimeSlot {
 export interface Availability {
   participantId: string;
   participantName: string;
+  userId?: string | null;
+  guestToken?: string | null;
   slots: TimeSlot[];
 }
 
@@ -36,6 +38,7 @@ export interface RecommendedSlot {
   endTime: string;
   participants: string[];
   score: number;
+  time: string;
 }
 
 export type VisualizationMode = 'heatmap';

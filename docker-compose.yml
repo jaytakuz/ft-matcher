@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"  # Vite ชอบใช้พอร์ต 5173 (ถ้า code ใช้พอร์ตอื่นให้แก้ตรงนี้)
+    volumes:
+      - .:/app
+      - /app/node_modules  # บรรทัดนี้สำคัญมาก! บอกว่าอย่าไปยุ่งกับ folder นี้ในเครื่อง
