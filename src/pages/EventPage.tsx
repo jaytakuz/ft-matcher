@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { 
+import {
   CalendarCheck, Plus, Check, Users, ArrowLeft, Pencil, Eye, EyeOff, Copy
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -19,17 +19,17 @@ import { EventCodeDisplay } from '@/components/EventCodeDisplay';
 import { AddToCalendarButton } from '@/components/AddToCalendarButton';
 import { OverlapSlider } from '@/components/OverlapSlider';
 import { ParticipantsList } from '@/components/ParticipantsList';
-import { getEvent } from '@/lib/eventService'; 
+import { getEvent } from '@/lib/eventService';
 import type { EventData, TimeSlot, RecommendedSlot } from '@/types/event';
 
 // Import Supabase และ Token Utility
-import { supabase } from "@/integrations/supabase/client"; 
+import { supabase } from "@/integrations/supabase/client";
 import { getGuestToken } from '@/utils/guestToken';
 
 const EventPage = () => {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
-  
+
   const [supabaseUser, setSupabaseUser] = useState<any>(null);
 
   useEffect(() => {
@@ -49,10 +49,10 @@ const EventPage = () => {
   const [loading, setLoading] = useState(true);
   const [isEditMode, setIsEditMode] = useState(false);
   const [showParticipantForm, setShowParticipantForm] = useState(false);
-  
-  const [currentUser, setCurrentUser] = useState<string | null>(null); 
+
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [currentUserEmail, setCurrentUserEmail] = useState<string | undefined>(undefined);
-  
+
   const [selectedSlots, setSelectedSlots] = useState<TimeSlot[]>([]);
   const [copied, setCopied] = useState(false);
   const [showOthersAvailability, setShowOthersAvailability] = useState(true);
@@ -67,12 +67,16 @@ const EventPage = () => {
 
     // A. ถ้า Login: เช็คจาก User ID
     if (supabaseUser) {
-      return event.availabilities.find(a => a.userId === supabaseUser.id);
+      return event.availabilities.find(a =>
+        (a.userId === supabaseUser.id) || (a.user_id === supabaseUser.id)
+      );
     }
 
     // B. ถ้า Guest: เช็คจาก Token ในเครื่อง
     const localToken = getGuestToken();
-    return event.availabilities.find(a => a.guestToken === localToken);
+    return event.availabilities.find(a =>
+      (a.guestToken === localToken) || (a.guest_token === localToken)
+    );
   }, [event, supabaseUser]);
 
   // 🟢 2. Auto Load: ถ้าเจอข้อมูลเก่า (myAvailability) ให้โหลดมาใส่เลย
@@ -92,7 +96,7 @@ const EventPage = () => {
     if (!event || event.availabilities.length < 2) return undefined;
     const slotLength = event.slotLength || 30;
     const eventDuration = event.duration;
-    
+
     const slotMap = new Map<string, Set<string>>();
     event.availabilities.forEach(availability => {
       availability.slots.forEach(slot => {
@@ -204,16 +208,16 @@ const EventPage = () => {
     setCurrentUser(name);
     setCurrentUserEmail(email);
     setShowParticipantForm(false);
-    
+
     // Check if user already has availability (Fallback logic)
     const existingAvailability = event?.availabilities.find(
       a => a.participantName.toLowerCase() === name.toLowerCase()
     );
-    
+
     if (existingAvailability) {
       setSelectedSlots(existingAvailability.slots);
     }
-    
+
     setShowOthersAvailability(false);
     setIsEditMode(true);
   };
@@ -221,9 +225,7 @@ const EventPage = () => {
   const handleSaveAvailability = async () => {
     if (!event) return;
 
-    const nameToSave = supabaseUser 
-      ? (supabaseUser.user_metadata?.full_name || supabaseUser.email) 
-      : currentUser;
+    const nameToSave = currentUser || (supabaseUser?.user_metadata?.full_name || supabaseUser?.email);
 
     if (!nameToSave || (!nameToSave.trim())) {
       toast({ title: "Name required", variant: "destructive" });
@@ -290,14 +292,22 @@ const EventPage = () => {
 
   const handleCancelEdit = () => {
     setIsEditMode(false);
-    // ถ้าเป็น Guest และยังไม่ได้ Save (หรือ Cancel) อาจจะเคลียร์ค่า หรือถ้าอยากให้จำค่าไว้ก็ได้
-    if (!supabaseUser && !myAvailability) {
-        setSelectedSlots([]);
+
+    if (myAvailability) {
+      // กรณี 1: เคย Save ไว้แล้ว (มีข้อมูลใน Database)
+      // ให้ย้อนค่ากลับไปเป็นของเดิมที่เคย Save ไว้ (Undo การแก้)
+      setSelectedSlots(myAvailability.slots);
+    } else {
+      // กรณี 2: ไม่เคยมีข้อมูล (เพิ่งกด Add ครั้งแรก แล้วเปลี่ยนใจกด Cancel)
+      // ล้างค่าทิ้งให้หมดเลย
+      setSelectedSlots([]);
+
+      // (ส่วนเสริม) ถ้าเป็น Guest ก็ให้เคลียร์ user session ชั่วคราวออกด้วยตามเดิม
+      if (!supabaseUser) {
         setCurrentUser(null);
-    } else if (myAvailability) {
-        // ถ้า Cancel แต่มีข้อมูลเก่าอยู่แล้ว ให้โหลดข้อมูลเก่ากลับมา
-        setSelectedSlots(myAvailability.slots);
+      }
     }
+
     setCurrentUserEmail(undefined);
     setShowOthersAvailability(true);
   };
@@ -325,8 +335,8 @@ const EventPage = () => {
     ? `${format(sortedDates[0], 'MMM d')} - ${format(sortedDates[sortedDates.length - 1], 'MMM d, yyyy')}`
     : format(sortedDates[0], 'MMMM d, yyyy');
 
-  const editingName = supabaseUser 
-    ? (supabaseUser.user_metadata?.full_name || supabaseUser.email) 
+  const editingName = supabaseUser
+    ? (supabaseUser.user_metadata?.full_name || supabaseUser.email)
     : currentUser;
 
   return (
@@ -356,7 +366,7 @@ const EventPage = () => {
             </div>
             <div className="flex items-center gap-2">
               <Popover>
-                <PopoverTrigger> 
+                <PopoverTrigger>
                   <Badge variant="secondary" className="flex items-center gap-1 cursor-pointer hover:bg-secondary/80 transition-colors">
                     <Users className="h-3 w-3" />
                     {event.availabilities.length} response{event.availabilities.length !== 1 ? 's' : ''}
@@ -387,7 +397,7 @@ const EventPage = () => {
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-card rounded-lg border border-border">
               <div className="flex items-center gap-3">
-                
+
                 {/* 🟢 3. ปุ่มฉลาดขึ้น: ถ้ายังไม่เคยลง (ทั้ง User/Guest) โชว์ Add */}
                 {!isEditMode && !myAvailability && (
                   <Button variant="outline" size="sm" onClick={() => setShowParticipantForm(true)} className="gap-2">
@@ -397,19 +407,19 @@ const EventPage = () => {
 
                 {/* 🟢 4. ถ้าเคยลงแล้ว (มี myAvailability) โชว์ Edit */}
                 {!isEditMode && myAvailability && (
-                  <Button 
-                    variant="default" 
-                    size="sm" 
-                    onClick={() => { 
-                      setIsEditMode(true); 
-                      setShowOthersAvailability(false); 
-                    }} 
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => {
+                      setIsEditMode(true);
+                      setShowOthersAvailability(false);
+                    }}
                     className="gap-2"
                   >
                     <Pencil className="h-4 w-4" /> Edit My Availability
                   </Button>
                 )}
-                
+
                 {showOthersAvailability ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                 <Label htmlFor="show-others" className="text-sm cursor-pointer">
                   {isEditMode ? "Show others' availability" : "Show all availability"}
@@ -438,7 +448,7 @@ const EventPage = () => {
 
             <AvailabilityGrid
               event={event}
-              currentUser={editingName ?? undefined} 
+              currentUser={editingName ?? undefined}
               isEditMode={isEditMode}
               visualizationMode="heatmap"
               selectedSlots={selectedSlots}
@@ -462,7 +472,7 @@ const EventPage = () => {
                 )}
               </div>
             )}
-            
+
             {isEditMode && <p className="text-sm text-muted-foreground">Click and drag to select times.</p>}
           </div>
 

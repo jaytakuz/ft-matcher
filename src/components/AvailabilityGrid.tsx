@@ -252,7 +252,7 @@ export const AvailabilityGrid = ({
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div className={cn(
-                        "flex flex-col items-center justify-center border-b border-border px-1 cursor-default",
+                        "flex flex-col items-center justify-center border-b border-border px-1 cursor-default select-none",
                         isDateOnly ? "h-24" : "h-20",
                         holiday && "bg-destructive/10"
                       )}>
