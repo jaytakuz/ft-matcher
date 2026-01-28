@@ -52,6 +52,7 @@ export async function getEvent(id: string): Promise<{ data: EventData | null; er
         id,
         participant_id,
         participant_name,
+        user_id,
         guest_token,
         slots (
           date,
