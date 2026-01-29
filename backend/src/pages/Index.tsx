@@ -1,7 +1,7 @@
-import { Link } from 'react-router-dom';
-import { CalendarCheck, Users, Zap, ArrowRight, Plus } from 'lucide-react';
-import { EventSearch } from '@/components/EventSearch';
-import { Button } from '@/components/ui/button';
+import { Link } from "react-router-dom";
+import { CalendarCheck, Users, Zap, ArrowRight, Plus } from "lucide-react";
+import { EventSearch } from "@/components/EventSearch";
+import { Button } from "@/components/ui/button";
 
 const Index = () => {
   return (
@@ -27,11 +27,11 @@ const Index = () => {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
-              Find the perfect time to{' '}
-              <span className="text-primary">meet</span>
+              Find the perfect time to <span className="text-primary">meet</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              Stop the endless back-and-forth. Create an event, share the link, and let everyone mark their availability. We'll find the overlap.
+              Stop the endless back-and-forth. Create an event, share the link, and let everyone mark their
+              availability. We'll find the overlap.
             </p>
           </div>
 
@@ -59,7 +59,6 @@ const Index = () => {
               description="Get ranked recommendations for the best meeting times"
             />
           </div>
-
         </div>
       </main>
 
@@ -73,15 +72,7 @@ const Index = () => {
   );
 };
 
-const FeatureCard = ({
-  icon,
-  title,
-  description,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}) => (
+const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) => (
   <div className="p-5 rounded-lg bg-secondary/30 border border-border/50">
     <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 text-primary mb-3">
       {icon}
