@@ -252,7 +252,7 @@ export const AvailabilityGrid = ({
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div className={cn(
-                        "flex flex-col items-center justify-center border-b border-border px-1 cursor-default select-none",
+                        "flex flex-col items-center justify-center border-b border-border px-1 cursor-default",
                         isDateOnly ? "h-24" : "h-20",
                         holiday && "bg-destructive/10"
                       )}>
@@ -306,8 +306,8 @@ export const AvailabilityGrid = ({
                     />
                   );
 
-                  // Show tooltip when there are unavailable participants
-                  if (participants.length > 0 && unavailable.length > 0) {
+                  // Show tooltip when there are participants
+                  if (participants.length > 0) {
                     const displayUnavailable = unavailable.slice(0, 5);
                     const hasMoreUnavailable = unavailable.length > 5;
                     
@@ -320,10 +320,12 @@ export const AvailabilityGrid = ({
                             <p className="font-medium text-sm mb-1 text-destructive">
                               {unavailable.length} unavailable
                             </p>
-                            <p className="text-xs text-foreground">
-                              {displayUnavailable.map(n => truncateName(n)).join(', ')}
-                              {hasMoreUnavailable && ` +${unavailable.length - 5}`}
-                            </p>
+                            {unavailable.length > 0 && (
+                              <p className="text-xs text-foreground">
+                                {displayUnavailable.map(n => truncateName(n)).join(', ')}
+                                {hasMoreUnavailable && ` +${unavailable.length - 5}`}
+                              </p>
+                            )}
                           </>
                         }
                       >

@@ -106,7 +106,7 @@ const CreateEvent = () => {
             <h1 className="text-xl font-semibold mb-6 text-center">
               Create Your Event
             </h1>
-            <EventForm hostEmail={user?.email} />
+            <EventForm />
           </div>
         </div>
       </main>

@@ -15,7 +15,7 @@ import { createEvent } from '@/lib/eventService';
 import { useToast } from '@/hooks/use-toast';
 import type { EventData } from '@/types/event';
 const timeOptions = generateTimeSlots('06:00', '24:00', 60);
-export const EventForm = ({ hostEmail }: { hostEmail?: string }) => {
+export const EventForm = () => {
   const navigate = useNavigate();
   const {
     toast
@@ -37,7 +37,6 @@ export const EventForm = ({ hostEmail }: { hostEmail?: string }) => {
       id: generateEventId(),
       name: eventName,
       hostName,
-      hostEmail,
       dates: selectedDates.map(d => d.toISOString()),
       startTime: dateOnly ? '00:00' : startTime,
       endTime: dateOnly ? '23:59' : endTime,

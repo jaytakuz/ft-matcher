@@ -26,9 +26,6 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
-        <div className="fixed bottom-2 right-2 z-50 text-[10px] text-gray-400 opacity-70 pointer-events-none font-mono">
-          v{import.meta.env.PACKAGE_VERSION}
-        </div>
       </TooltipProvider>
     </AuthProvider>
   </QueryClientProvider>

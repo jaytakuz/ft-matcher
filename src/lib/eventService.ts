@@ -45,14 +45,13 @@ export async function getEvent(id: string): Promise<{ data: EventData | null; er
     if (eventError) throw eventError;
     if (!eventRow) return { data: null, error: null };
 
-    // Fetch availabilities with slots - only select columns that exist in the schema
+    // Fetch availabilities with slots
     const { data: availabilityRows, error: availError } = await supabase
       .from("availabilities")
       .select(`
         id,
         participant_id,
         participant_name,
-        participant_email,
         slots (
           date,
           time
@@ -62,10 +61,9 @@ export async function getEvent(id: string): Promise<{ data: EventData | null; er
 
     if (availError) throw availError;
 
-    const availabilities: Availability[] = (availabilityRows || []).map((a: any) => ({
+    const availabilities: Availability[] = (availabilityRows || []).map((a) => ({
       participantId: a.participant_id,
       participantName: a.participant_name,
-      participantEmail: a.participant_email || undefined,
       slots: (a.slots || []).map((s: { date: string; time: string }) => ({
         date: s.date,
         time: s.time,
@@ -98,8 +96,7 @@ export async function getEvent(id: string): Promise<{ data: EventData | null; er
 export async function saveAvailability(
   eventId: string,
   participantName: string,
-  slots: TimeSlot[],
-  participantEmail?: string
+  slots: TimeSlot[]
 ): Promise<{ error: Error | null }> {
   try {
     // Delete existing availability for this participant
@@ -125,7 +122,6 @@ export async function saveAvailability(
         event_id: eventId,
         participant_id: crypto.randomUUID(),
         participant_name: participantName,
-        participant_email: participantEmail || null,
       })
       .select("id")
       .single();
