@@ -19,6 +19,7 @@ export type Database = {
           created_at: string
           event_id: string
           id: string
+          participant_email: string | null
           participant_id: string
           participant_name: string
         }
@@ -26,6 +27,7 @@ export type Database = {
           created_at?: string
           event_id: string
           id?: string
+          participant_email?: string | null
           participant_id: string
           participant_name: string
         }
@@ -33,6 +35,7 @@ export type Database = {
           created_at?: string
           event_id?: string
           id?: string
+          participant_email?: string | null
           participant_id?: string
           participant_name?: string
         }
