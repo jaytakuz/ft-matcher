@@ -1,8 +1,8 @@
 version: '3.8'
 
 services:
-  # 🛡️ 1. Gateway
   gateway-nginx:
+    platform: linux/amd64
     image: nginx:alpine
     ports:
       - "10610:80"
@@ -14,23 +14,18 @@ services:
     networks:
       - app-network
 
-  # 🎨 2. Frontend
   my-frontend:
-    # ❌ ผิด: image: my-react-app
-    # ✅ ถูก: สั่งให้สร้างจากโฟลเดอร์ frontend
+    platform: linux/amd64
     build: ./frontend       
     container_name: ft-frontend
     networks:
       - app-network
 
-  # 🧠 3. Backend
   my-backend:
-    # ❌ ผิด: image: my-node-api
-    # ✅ ถูก: สั่งให้สร้างจากโฟลเดอร์ backend
+    platform: linux/amd64
     build: ./backend        
     container_name: ft-backend
     
-    # อย่าลืมใส่ .env ให้ Backend ด้วย (สำคัญมากสำหรับของจริง)
     env_file:
       - ./backend/.env
       
