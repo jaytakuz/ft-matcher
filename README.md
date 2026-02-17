@@ -12,10 +12,10 @@ A collaborative project built by a 3-person cross-functional team, balancing bus
   * **QA & UAT:** Designed rigorous macro/micro test cases to validate algorithm accuracy, handling edge cases, and led User Acceptance Testing (UAT) to ensure robust backend operations.
   * 📄 *[Freetime matcher_PRD : [Overall_Matcher.pdf](https://github.com/user-attachments/files/25371265/Overall_Matcher.pdf)]*
 
-* **[View] - Lead Developer**
-  * Handled the technical transition from AI-assisted prototypes (Lovable) to production-ready code.
-  * Optimized backend logic, refined API integrations, and debugged edge cases to ensure 100% deployment readiness and system stability.
-
 * **[Jay] - UX/UI Designer**
   * Collaborated closely with the PM to translate complex system logic into an intuitive, user-friendly interface.
   * Designed end-to-end user flows, focusing on seamless interaction for time-selection and real-time dashboard visualization.
+
+* **[View] - Lead Developer**
+  * Handled the technical transition from AI-assisted prototypes (Lovable) to production-ready code.
+  * Optimized backend logic, refined API integrations, and debugged edge cases to ensure 100% deployment readiness and system stability.
