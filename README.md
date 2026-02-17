@@ -1,4 +1,4 @@
-[Overall_Matcher.pdf](https://github.com/user-attachments/files/25371263/Overall_Matcher.pdf)## 🎯 Project Overview
+## 🎯 Project Overview
 An automated scheduling platform designed to eliminate the friction of organizing group meetings. The system cross-references multiple user calendars to calculate and recommend the optimal intersecting free time for all participants, streamlining organizational workflows.
 
 ## 👥 Team & Responsibilities
