@@ -9,8 +9,7 @@ A collaborative project built by a 3-person cross-functional team, balancing bus
   * **Technical Analysis:** Designed the system architecture and database schema. 
   * **Algorithm Design:** Architected the database schema and formulated the core **"Weighted Scoring Algorithm"** (Prioritizing: *User Count > Duration > Chronological Order*) to power the smart recommendation engine.
   * **QA & UAT:** Designed rigorous macro/micro test cases to validate algorithm accuracy, handling edge cases, and led User Acceptance Testing (UAT) to ensure robust backend operations.
-  * 📄 *[Freetime matcher_PRD : [Overall_Matcher.pdf](https://github.com/user-attachments/files/25371265/Overall_Matcher.pdf)]*
-  * 📁 
+  * 📄 *[Freetime matcher_PRD : [Overall_Matcher.pdf](https://github.com/user-attachments/files/25371265/Overall_Matcher.pdf)]* 
 
 * **[Jay] - UX/UI Designer**
   * Collaborated closely with the PM to translate complex system logic into an intuitive, user-friendly interface.
