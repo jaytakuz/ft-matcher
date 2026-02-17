@@ -5,7 +5,6 @@ An automated scheduling platform designed to eliminate the friction of organizin
 A collaborative project built by a 3-person cross-functional team, balancing business viability, user experience, and technical execution.
 
 * **[S] - Product Manager & System Analyst**
-  Bridged the gap between business strategy and technical execution:
   * **Business Analysis:** Authored comprehensive Product Requirement Documents (PRD), conducted competitive analysis (e.g., Calendly, When2Meet, Lettucemeet) to identify market gaps, and defined the core MVP scope. 
   * **Technical Analysis:** Designed the system architecture and database schema. 
   * **Algorithm Design:** Architected the database schema and formulated the core **"Weighted Scoring Algorithm"** (Prioritizing: *User Count > Duration > Chronological Order*) to power the smart recommendation engine.
