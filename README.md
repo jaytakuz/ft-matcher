@@ -18,3 +18,7 @@ A collaborative project built by a 3-person cross-functional team, balancing bus
 * **[View] - Lead Developer**
   * Handled the technical transition from AI-assisted prototypes (Lovable) to production-ready code.
   * Optimized backend logic, refined API integrations, and debugged edge cases to ensure 100% deployment readiness and system stability.
+
+* **Authors**
+  * github.com/sosayS0 > [S]
+  * 
