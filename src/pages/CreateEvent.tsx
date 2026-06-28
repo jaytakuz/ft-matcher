@@ -23,7 +23,7 @@ const CreateEvent = () => {
         <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
           <div className="container mx-auto px-4 h-16 flex items-center justify-between">
             <Link to="/" className="flex items-center gap-2">
-              <CalendarCheck className="h-6 w-6 text-primary" />
+              <img src="/favicon.png" alt="DS Link" className="h-7 w-7" />
               <span className="font-semibold text-lg">DS Link</span>
             </Link>
           </div>
@@ -78,7 +78,7 @@ const CreateEvent = () => {
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <CalendarCheck className="h-6 w-6 text-primary" />
+            <img src="/favicon.png" alt="DS Link" className="h-7 w-7" />
             <span className="font-semibold text-lg">DS Link</span>
           </Link>
           <div className="flex items-center gap-3">
