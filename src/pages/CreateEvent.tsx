@@ -24,7 +24,7 @@ const CreateEvent = () => {
           <div className="container mx-auto px-4 h-16 flex items-center justify-between">
             <Link to="/" className="flex items-center gap-2">
               <CalendarCheck className="h-6 w-6 text-primary" />
-              <span className="font-semibold text-lg">Freetime Matcher</span>
+              <span className="font-semibold text-lg">DS Link</span>
             </Link>
           </div>
         </header>
@@ -79,7 +79,7 @@ const CreateEvent = () => {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <CalendarCheck className="h-6 w-6 text-primary" />
-            <span className="font-semibold text-lg">Freetime Matcher</span>
+            <span className="font-semibold text-lg">DS Link</span>
           </Link>
           <div className="flex items-center gap-3">
             <span className="text-sm text-muted-foreground hidden sm:block">

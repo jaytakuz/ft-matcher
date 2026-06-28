@@ -11,7 +11,7 @@ const Index = () => {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CalendarCheck className="h-6 w-6 text-primary" />
-            <span className="font-semibold text-lg">Freetime Matcher</span>
+            <span className="font-semibold text-lg">DS Link</span>
           </div>
           <Link to="/create">
             <Button size="sm">
