@@ -9,8 +9,8 @@ interface SlotTooltipProps {
 
 export const SlotTooltip = ({ children, content, slotKey }: SlotTooltipProps) => {
   const [open, setOpen] = useState(false);
-  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleMouseEnter = useCallback(() => {
     if (closeTimeoutRef.current) {
